@@ -1,16 +1,18 @@
-# Mini C-RAM Capstone Project - Object Detection and Tracking
-## Description
-This project intends to detect and track objects through computer vision algorithms. It also serves as code to handle the controller of the project.
-
-# Project Name
+# Mini C-RAM Capstone
 
 ## Description
-A brief description of your project. Explain what it does and its purpose.
+This project seeks to simulate the C-RAM (Counter Rockets, Artillery, and Mortar) weapon commonly used by the U.S. military. It detects drones caught in view through a video feed and activates a laser upon detection, while allowing full control by the user. This system serves as a counter-drone tool.
 
 ## Prerequisites
 - Python 3.11.2 installed ([Download here](https://www.python.org/downloads/release/python-3112/))
 - `pip` (Python package manager)
-
+- Intermediate Python programming knowledge
+- Hardware tools:
+    - Raspberry Pi 5
+    - HDMI capture card
+    - Video camera
+    - Laser pointer
+    - Small stage light
 ---
 
 ## Setup Instructions
@@ -18,13 +20,29 @@ A brief description of your project. Explain what it does and its purpose.
 ### Step 1: Clone the Repository
 Clone this repository to your local machine:
 ```bash
-git clone https://github.com/username/project-name.git
-cd project-name
+git clone https://github.com/alonsovazqueztena/Mini_C-RAM_Capstone.git
+cd Mini_C-RAM_Capstone
+```
 
+### Step 2: Install the Dependencies
+Install the dependencies through the requirements.txt file:
+```bash
+pip install -r requirements.txt
+```
+
+### Step 3: Create the Environment
+Create the Python virtual environment:
+```bash
+python -m venv env
+
+source env/bin/activate
+```
 
 ## Usage
-Instructions on how to run or use the project.
+To be determined.
 
 ## Contributors
-List of people who contributed to the project.
+- Alonso Vazquez Tena - main contributor of object detection/tracking software
+- Daniel Saravia - main contributor of system integration software
+- Ryan Woodward - project mentor
 
