@@ -24,18 +24,18 @@ git clone https://github.com/alonsovazqueztena/Mini_C-RAM_Capstone.git
 cd Mini_C-RAM_Capstone
 ```
 
-### Step 2: Install the Dependencies
-Install the dependencies through the requirements.txt file:
-```bash
-pip install -r requirements.txt
-```
-
-### Step 3: Create the Environment
+### Step 2: Create the Environment
 Create the Python virtual environment:
 ```bash
 python -m venv env
 
 source env/bin/activate
+```
+
+### Step 3: Install the Dependencies
+Install the dependencies through the requirements.txt file:
+```bash
+pip install -r requirements.txt
 ```
 
 ## Usage
