@@ -1,6 +1,18 @@
+# Alonso Vazquez Tena
+# STG-452: Capstone Project II
+# 1-13-2025
+# I used source code from the following website to complete this assignment: 
+# https://chatgpt.com/share/67858756-0f30-800e-9d01-248c34adccea (used as starter code for basic functionality).
+
+# This project requires the usage of computer vision. In this case, OpenCV will be used.
 import cv2 as cv
+
+# This project requires the usage of logs for the developer to understand the conditions of the system, whether
+# an error has occurred or the execution of the class was a success.
 import logging
 
+# This class serves as code for a video stream manager. This serves to handle the logic to properly
+# take in a video stream connected to the Pi 5 from a camera through an HDMI capture card.
 class VideoStreamManager:
 
     # This function initializes the video stream manager.
