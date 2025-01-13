@@ -5,7 +5,8 @@ from video_stream_manager import VideoStreamManager
 from frame_processor import FrameProcessor
 from frame_pipeline import FramePipeline
 from yolo_model_interface import YOLOModelInterface
-from detection_processor import DetectionProcessor  # <-- Make sure it's available in your project
+from detection_processor import DetectionProcessor
+from tracking_system import TrackingSystem  # <-- Import your tracker here
 
 def test_video_stream_manager():
     """
@@ -83,7 +84,6 @@ def test_detection_processor():
         logging.info(f"Raw detections from YOLO: {raw_detections}")
 
         # 4. Initialize DetectionProcessor (filter by confidence >= 0.3, for example)
-        #    If you'd like to filter only certain class IDs, adjust target_classes.
         detection_processor = DetectionProcessor(
             target_classes=None,  # e.g., [0,1] if you only want classes 0 and 1
             confidence_threshold=0.3
@@ -118,6 +118,33 @@ def test_frame_pipeline():
     except Exception as e:
         logging.error(f"FramePipeline test failed: {e}")
 
+def test_frame_pipeline_with_tracking():
+    """
+    Test the FramePipeline by running a continuous video stream at 640x480,
+    including detection + tracking. Press 'q' to stop the pipeline.
+    """
+    logging.info("Testing FramePipeline with TrackingSystem...")
+    try:
+        # Create a TrackingSystem with desired parameters
+        tracker = TrackingSystem(max_disappeared=50, max_distance=50)
+
+        # Initialize the FramePipeline, passing the tracker in
+        pipeline = FramePipeline(
+            capture_device=0, 
+            frame_width=640, 
+            frame_height=480, 
+            target_width=640, 
+            target_height=640,
+            model_path="yolo_epoch_100.pt",
+            confidence_threshold=0.5,
+            detection_processor=None,  # or specify if you want custom
+            tracking_system=tracker
+        )
+        pipeline.run()  # Runs until 'q' is pressed or no frames are captured.
+        logging.info("FramePipeline with TrackingSystem test completed successfully.")
+    except Exception as e:
+        logging.error(f"FramePipeline with TrackingSystem test failed: {e}")
+
 def main():
     """
     Main entry point for testing all modules in a single script.
@@ -142,9 +169,13 @@ def main():
     # 5. Test the FramePipeline (real-time video + YOLO detection + 640x480).
     test_frame_pipeline()
 
+    # 6. Test the FramePipeline WITH TRACKING (real-time detection + tracking).
+    test_frame_pipeline_with_tracking()
+
     logging.info("All module tests completed.")
 
 if __name__ == "__main__":
     main()
+
 
 

@@ -3,94 +3,122 @@ import numpy as np
 from scipy.spatial import distance as dist
 
 class TrackingSystem:
+    """
+    Simple multi-object tracking system using centroid-based matching.
+    """
 
-    # This initializes the tracking system.
-    # Arguments for this includes the maximum number of consecutive
-    # frames an object can be missing before it is deregistered.
-    def __init__(self, max_disappeared = 50):
-
+    def __init__(self, max_disappeared=50, max_distance=50):
+        """
+        Args:
+            max_disappeared (int): Maximum number of consecutive frames 
+                an object may go missing before it is deregistered.
+            max_distance (float): Maximum allowed centroid distance 
+                for matching an existing object to a new detection.
+        """
         self.next_object_id = 0
-        self.objects = OrderedDict()
-        self.disappeared = OrderedDict()
+        self.objects = OrderedDict()      # object_id -> detection dict
+        self.disappeared = OrderedDict()  # object_id -> number of consecutive missed frames
         self.max_disappeared = max_disappeared
+        self.max_distance = max_distance
 
-    # This registers a new object with the tracking system.
-    def register(self, centroid):
-
-        self.objects[self.next_object_id] = centroid
+    def register(self, detection):
+        """
+        Register a new object (detection) in the tracking system.
+        
+        Args:
+            detection (dict): A single detection dict containing at least
+                              { 'centroid': (x_center, y_center), 'bbox': [...], ... }
+        """
+        self.objects[self.next_object_id] = detection
         self.disappeared[self.next_object_id] = 0
         self.next_object_id += 1
 
-    # This deregisters an object from the tracking system.
     def deregister(self, object_id):
-
+        """
+        Remove an object from the tracking system.
+        """
         del self.objects[object_id]
         del self.disappeared[object_id]
 
-    # This updates the tracking system with new detections.
-    # Arguments for this includes a list of detections.
-    # This returns current tracked objects.
     def update(self, detections):
-        
+        """
+        Update tracked objects with new detection data.
+
+        Args:
+            detections (List[dict]): Each dict is typically produced by
+                DetectionProcessor and includes at least:
+                {
+                    "bbox": [x_min, y_min, x_max, y_max],
+                    "confidence": float,
+                    "class_id": int,
+                    "centroid": (x_center, y_center)
+                }
+
+        Returns:
+            OrderedDict: Current tracked objects as {object_id: detection_dict}
+        """
+        # 1. If there are no new detections, mark existing objects as disappeared.
         if len(detections) == 0:
-            # This marks all current objects as disappeared
             for object_id in list(self.disappeared.keys()):
                 self.disappeared[object_id] += 1
                 if self.disappeared[object_id] > self.max_disappeared:
                     self.deregister(object_id)
-
             return self.objects
-        
-        # This extracts centroids from detection.
-        input_centroids = np.array([det["centroid"] for det in detections])
 
-        # If there are no existing objects that are tracked, register all centroids.
+        # 2. Extract centroids from the new detections.
+        input_centroids = np.array([d["centroid"] for d in detections])
+
+        # 3. If no objects are being tracked, register all new detections.
         if len(self.objects) == 0:
-            for centroid in input_centroids:
-                self.register(centroid)
+            for det in detections:
+                self.register(det)
         else:
-
-            # This is to match existing objects to new detections.
+            # 4. Prepare to match current tracked objects to new detections via centroid distance.
             object_ids = list(self.objects.keys())
-            object_centroids = list(self.objects.values())
+            object_centroids = [self.objects[obj_id]["centroid"] for obj_id in object_ids]
+            object_centroids = np.array(object_centroids)
 
-            # This is to compute the distance matrix.
-            distance_matrix = dist.cdist(np.array(object_centroids), input_centroids)
+            # 5. Compute distance matrix between tracked centroids and new detection centroids.
+            distance_matrix = dist.cdist(object_centroids, input_centroids)
 
-            # This is to find the smallest distance for each object.
-            rows = distance_matrix.min(axis = 1).argsort()
-            cols = distance_matrix.argmin(axis = 1)[rows]
+            # 6. For each tracked object, find the closest new detection in ascending order.
+            rows = distance_matrix.min(axis=1).argsort()
+            cols = distance_matrix.argmin(axis=1)[rows]
 
-            # This is to keep track of matched rows and columns.
+            # Keep track of matched rows & columns to avoid double assignment.
             used_rows, used_cols = set(), set()
 
             for row, col in zip(rows, cols):
+                # If we’ve already matched this row or column, skip.
                 if row in used_rows or col in used_cols:
                     continue
-                if distance_matrix[row, col] > self.max_disappeared:
+
+                # If distance is too great, ignore this match.
+                if distance_matrix[row, col] > self.max_distance:
                     continue
 
-                # This is to update the centroid of the matched object.
+                # Update the tracked object with the new detection data.
                 object_id = object_ids[row]
-                self.objects[object_id] = input_centroids[col]
-                self.disappeared[object_id] = 0
+                self.objects[object_id] = detections[col]  # store full detection dict
+                self.disappeared[object_id] = 0            # reset disappearance count
 
                 used_rows.add(row)
                 used_cols.add(col)
 
-            # This is to check for unmatched rows (disappeared objects).
-            unused_rows = set(range(len(object_ids))) - used_rows
+            # 7. For any unmatched tracked objects, increment disappearance count.
+            unused_rows = set(range(0, distance_matrix.shape[0])) - used_rows
             for row in unused_rows:
                 object_id = object_ids[row]
                 self.disappeared[object_id] += 1
                 if self.disappeared[object_id] > self.max_disappeared:
                     self.deregister(object_id)
 
-            # This is to check for unmatched columns (new objects).
-            unused_cols = set(range(len(input_centroids))) - used_cols
+            # 8. For any unmatched detections, register them as new objects.
+            unused_cols = set(range(0, distance_matrix.shape[1])) - used_cols
             for col in unused_cols:
-                self.register(input_centroids[col])
+                self.register(detections[col])
 
         return self.objects
+
 
     
