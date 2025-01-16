@@ -22,7 +22,7 @@ import cv2 as cv
 # take in a video stream connected to the Pi 5 from a camera
 # through an HDMI capture card.
 class VideoStreamManager:
-
+"""Creates and sets up the video stream manager."""
 
     # This method initializes the video stream manager.
 
@@ -32,6 +32,14 @@ class VideoStreamManager:
     def __init__(
             self, capture_device=0,
             frame_width=848, frame_height=480):
+        """Initalize the video stream manager.
+        
+        Keyword arguments:
+        self -- instance of the video stream manager
+        capture_device -- index of video capture stream device (default 0)
+        frame_width -- width of video capture stream frame (default 848)
+        frame_height -- height of video capture stream frame (default 480)
+        """
         self.capture_device = capture_device
         self.frame_width = frame_width
         self.frame_height = frame_height
@@ -49,7 +57,7 @@ class VideoStreamManager:
     # HDMI capture card off the GoPro Hero 5 Black.
     def initialize_stream(
             self):
-
+        """Initialize the video stream."""
         # The log includes a message displaying that the video stream is initializing.
         logging.info("The video stream is initializing...")
 
@@ -85,7 +93,7 @@ class VideoStreamManager:
     # returns it in the program.
     def get_frame(
             self):
-
+        """Retrieve the frame from the video stream."""
         # If the HDMI capture card cannot be opened or 
         # there is no HDMI capture card detected,
         # an error is raised and output in a log.
@@ -119,7 +127,7 @@ class VideoStreamManager:
     # key from the user to terminate.
     def release_stream(
             self):
-
+        """Release the video stream."""
         # If the HDMI capture card is opened and detected
         # (thus, a video stream exists), the video stream will end and
         # this will be output in a log.
@@ -132,6 +140,7 @@ class VideoStreamManager:
     # This is a simple enter method that only initializes the stream.
     def __enter__(
             self):
+        """Initialize the stream."""
         self.initialize_stream()
         return self
 
@@ -141,5 +150,12 @@ class VideoStreamManager:
     def __exit__(
             self, exc_type,
             exc_value, traceback):
+        """Exit the video stream.
+        
+        self -- instance of the video stream manager
+        exc_type -- class of the exception that occurred during execution
+        exc_value -- actual exception instance that occurred
+        traceback -- contains stack trace where exception was raised
+        """
         self.release_stream()
 
