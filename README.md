@@ -1,48 +1,169 @@
-# Mini C-RAM Capstone
+# Mini C-RAM Counter-Drone System
 
-## Description
-This project seeks to simulate the C-RAM (Counter Rockets, Artillery, and Mortar) weapon commonly used by the U.S. military. It detects drones caught in view through a video feed and activates a laser upon detection, while allowing full control by the user. This system serves as a counter-drone tool.
+## Table of Contents
+- [Project Overview](#project-overview)
+- [Key Features](#key-features)
+- [System Architecture](#system-architecture)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Usage](#usage)
+- [Hardware Setup](#hardware-setup)
+- [Simulation Mode](#simulation-mode)
+- [Testing](#testing)
+- [Contributing](#contributing)
+- [License](#license)
 
-## Prerequisites
-- Python 3.11.2 installed ([Download here](https://www.python.org/downloads/release/python-3112/))
-- `pip` (Python package manager)
-- Intermediate Python programming knowledge
-- Hardware tools:
-    - Raspberry Pi 5
-    - HDMI capture card
-    - Video camera
-    - Laser pointer
-    - Small stage light
----
+## Project Overview
+A real-time counter-drone system using computer vision and object tracking. Detects UAVs in video streams and simulates countermeasures (laser activation). Designed for Raspberry Pi with optional hardware integration.
 
-## Setup Instructions
+## Key Features
+- Real-time object detection using YOLOv5
+- Centroid-based object tracking
+- Frame processing pipeline (640x480 @ 15FPS)
+- Hardware control interface for laser systems
+- Simulation mode for development without hardware
+- Configurable detection thresholds and tracking parameters
 
-### Step 1: Clone the Repository
-Clone this repository to your local machine:
+## System Architecture
+```
+.
+├── control_output_manager.py   # Laser control interface (GPIO/PWM)
+├── detection_processor.py      # Filters/processes YOLO detections
+├── frame_pipeline.py           # Main processing workflow
+├── frame_processor.py          # Frame resizing/normalization
+├── main.py                     # System entry point
+├── tracking_system.py          # Object tracking implementation
+├── video_stream_manager.py     # Camera/stream input handling
+├── yolo_model_interface.py     # YOLO model wrapper
+└── config.yaml                 # System configuration
+```
+
+## Installation
+
+### Prerequisites
+- Python 3.8+
+- Raspberry Pi OS (Bullseye) or Ubuntu 20.04
+- USB Webcam or IP Camera
+
 ```bash
+# Clone repository
 git clone https://github.com/alonsovazqueztena/Mini_C-RAM_Capstone.git
 cd Mini_C-RAM_Capstone
-```
 
-### Step 2: Create the Environment
-Create the Python virtual environment:
-```bash
-python -m venv env
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # Linux/MacOS
+# venv\Scripts\activate  # Windows
 
-source env/bin/activate
-```
-
-### Step 3: Install the Dependencies
-Install the dependencies through the requirements.txt file:
-```bash
+# Install dependencies
 pip install -r requirements.txt
 ```
 
+## Configuration
+Edit `config.yaml`:
+
+```yaml
+camera:
+  device: 0              # /dev/video0
+  resolution: [640, 480] # Input resolution
+  fps: 30                # Target FPS
+
+detection:
+  model: yolo_epoch_100.pt
+  confidence: 0.65       # Minimum detection confidence
+  classes: [0]           # COCO class IDs (0: person, etc.)
+
+tracking:
+  max_disappeared: 30    # Frames to keep lost objects
+  max_distance: 50       # Pixel distance for ID matching
+
+hardware:
+  laser_pin: 18          # GPIO pin for laser control
+  safe_mode: true        # Disable physical outputs
+```
+
 ## Usage
-To be determined.
 
-## Contributors
-- Alonso Vazquez Tena - main contributor of object detection/tracking software
-- Daniel Saravia - main contributor of system integration software
-- Ryan Woodward - project mentor
+### Basic Operation
+```bash
+# Start system with default config
+python main.py
+```
 
+#### Keyboard Control
+| Key | Description            |
+|-----|------------------------|
+| q   | Quit system            |
+| p   | Pause processing       |
+| d   | Toggle debug overlay   |
+
+### Advanced Modes
+```bash
+# Use test image instead of camera
+python main.py --simulate
+
+# Specify custom configuration
+python main.py --config custom_config.yaml
+```
+
+## Hardware Setup
+
+### Hardware Diagram
+
+**Camera Connection**
+- **USB Webcam**: Plug into available USB port
+- **IP Camera**: Set RTSP URL in `config.yaml`
+
+**Laser Control**
+- Connect laser module to GPIO 18
+- Power: 5V PWM compatible laser diode
+
+**Safety Measures**
+- Always enable `safe_mode` during development
+- Use current-limiting resistor for laser
+
+## Simulation Mode
+Test without hardware using stored images:
+
+```python
+# In video_stream_manager.py
+SIMULATION_MODE = True
+IMAGE_PATH = "drone_test.jpg"
+```
+
+## Testing
+Run validation tests:
+
+```bash
+python -m unittest discover -s tests/
+
+# Individual component tests
+python test.py --test detection
+python test.py --test tracking
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch:
+```bash
+git checkout -b feature/new-tracker
+```
+3. Add tests for new functionality
+4. Submit a pull request
+
+### Coding Standards
+- PEP8 compliance
+- Type hints for public methods
+- Docstrings for all modules
+- 80%+ test coverage
+
+## License
+MIT License - See LICENSE for details
+
+## Maintainers
+- Alonso Vazquez Tena  
+- Daniel Saravia  
+
+**Mentor**: Ryan Woodward  
+*University of Advanced Robotics, 2023*
