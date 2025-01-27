@@ -14,16 +14,5 @@ env/
 venv/
 cap/
 
-# Ignore specific model files
-*.pt
-
-# Ignore image files (optional, if these are generated or not part of versioning)
-*.jpg
-*.jpeg
-*.png
-
 # Ignore generated files
 *.pyc
-
-# Test-related files (optional, if not needed in the repo)
-test.py
