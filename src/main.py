@@ -33,7 +33,7 @@ def test_frame_processor():
 
         # Load or create a dummy frame for testing.
         # Replace 'test_image.jpg' with a valid path to your image.
-        dummy_frame = cv.imread("test_image.jpg")
+        dummy_frame = cv.imread("../test/drone_test.jpg")
         if dummy_frame is None:
             raise ValueError("Failed to load test image. Provide a valid image path.")
 
@@ -55,7 +55,7 @@ def test_yolo_model_interface():
         yolo_interface = YOLOModelInterface(model_path="yolo_epoch_100.pt", confidence_threshold=0.5)
 
         # Replace 'test_image.jpg' with any valid image file for real testing.
-        test_img = cv.imread("test_image.jpg")
+        test_img = cv.imread("../test/drone_test.jpg")
         if test_img is None:
             raise ValueError("Failed to load test image for YOLO. Provide a valid image path.")
 
@@ -75,7 +75,7 @@ def test_detection_processor():
         yolo_interface = YOLOModelInterface(model_path="yolo_epoch_100.pt", confidence_threshold=0.3)
 
         # 2. Load a test image
-        test_img = cv.imread("test_image.jpg")
+        test_img = cv.imread("../test/drone_test.jpg")
         if test_img is None:
             raise ValueError("Failed to load test image for YOLO. Provide a valid image path.")
 
