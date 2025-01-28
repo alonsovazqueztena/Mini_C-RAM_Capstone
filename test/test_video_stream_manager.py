@@ -1,10 +1,11 @@
 import pytest
 import logging
-import cv2
+import cv2 as cv
+import numpy as np
 from unittest.mock import MagicMock, patch
 
 # Import the class to be tested
-from video_stream_manager import VideoStreamManager
+from src.video_stream_manager import VideoStreamManager
 
 @pytest.fixture
 def manager():
@@ -18,7 +19,7 @@ def test_init(manager):
     assert manager.frame_height == 480
     assert manager.capture is None  # Should not be opened yet.
 
-@patch.object(cv2, 'VideoCapture')
+@patch.object(cv, 'VideoCapture')
 def test_initialize_stream_success(mock_VideoCapture, manager):
     """
     Test that initialize_stream() opens the capture device successfully
@@ -44,7 +45,7 @@ def test_initialize_stream_success(mock_VideoCapture, manager):
     # Assert that it stored the capture object in manager.capture
     assert manager.capture == mock_capture
 
-@patch.object(cv2, 'VideoCapture')
+@patch.object(cv, 'VideoCapture')
 def test_initialize_stream_failure(mock_VideoCapture, manager):
     """
     Test that initialize_stream() raises an error if the capture device
@@ -59,23 +60,25 @@ def test_initialize_stream_failure(mock_VideoCapture, manager):
     with pytest.raises(RuntimeError, match="Cannot open the HDMI capture card"):
         manager.initialize_stream()
 
-@patch.object(cv2, 'VideoCapture')
+@patch.object(cv, 'VideoCapture')
 def test_get_frame_success(mock_VideoCapture, manager):
     """
     Test that get_frame() returns the captured frame when everything works.
     """
     mock_capture = MagicMock()
     mock_capture.isOpened.return_value = True
-    # Simulate a successful .read() call => ret=True, frame=<some_array>
-    mock_capture.read.return_value = (True, "fake_frame_data")
+    # Return a dummy numpy array so we can call frame.shape
+    fake_frame = np.zeros((480, 848, 3), dtype=np.uint8)
+    mock_capture.read.return_value = (True, fake_frame)
     mock_VideoCapture.return_value = mock_capture
 
     manager.initialize_stream()
 
     frame = manager.get_frame()
-    assert frame == "fake_frame_data"
+    assert frame is not None
+    assert frame.shape == (480, 848, 3)
 
-@patch.object(cv2, 'VideoCapture')
+@patch.object(cv, 'VideoCapture')
 def test_get_frame_no_stream(mock_VideoCapture, manager):
     """
     Test that get_frame() raises an error if the stream is not initialized.
@@ -85,7 +88,7 @@ def test_get_frame_no_stream(mock_VideoCapture, manager):
     with pytest.raises(RuntimeError, match="The video stream cannot be initialized"):
         manager.get_frame()
 
-@patch.object(cv2, 'VideoCapture')
+@patch.object(cv, 'VideoCapture')
 def test_get_frame_read_failure(mock_VideoCapture, manager):
     """
     Test that get_frame() returns None (and logs an error) if .read() fails.
@@ -100,7 +103,7 @@ def test_get_frame_read_failure(mock_VideoCapture, manager):
     frame = manager.get_frame()
     assert frame is None
 
-@patch.object(cv2, 'VideoCapture')
+@patch.object(cv, 'VideoCapture')
 def test_get_frame_invalid_frame(mock_VideoCapture, manager):
     """
     Test that get_frame() returns None if the captured frame is None.
@@ -115,7 +118,7 @@ def test_get_frame_invalid_frame(mock_VideoCapture, manager):
     frame = manager.get_frame()
     assert frame is None
 
-@patch.object(cv2, 'VideoCapture')
+@patch.object(cv, 'VideoCapture')
 def test_release_stream(mock_VideoCapture, manager):
     """
     Test that release_stream() properly calls .release() on the capture object
