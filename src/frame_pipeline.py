@@ -24,6 +24,7 @@ from tracking_system import TrackingSystem
 from video_stream_manager import VideoStreamManager
 from yolo_model_interface import YOLOModelInterface
 
+
 # This class serves as a frame pipeline that 
 # captures frames from a video stream,
 # processes them, runs YOLO + detection filtering, 

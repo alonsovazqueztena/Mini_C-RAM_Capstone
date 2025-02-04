@@ -6,6 +6,7 @@
 # https://chatgpt.com/share/67a05526-d4d8-800e-8e0d-67b03ca451a8
 # (used as starter code for basic functionality).
 
+
 # This class is largely incomplete. 
 # This is a placeholder for the ControlOutputManager class.
 

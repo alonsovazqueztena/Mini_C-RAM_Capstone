@@ -1,3 +1,11 @@
+# Alonso Vazquez Tena
+# STG-452: Capstone Project II
+# February 2, 2025
+# I used source code from the following 
+# website to complete this assignment:
+# https://chatgpt.com/share/67a19036-b408-800e-8419-7a79dd969fcc
+# (used as starter code for basic functionality).
+
 import pytest
 from src.detection_processor import DetectionProcessor
 

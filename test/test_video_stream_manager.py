@@ -1,3 +1,11 @@
+# Alonso Vazquez Tena
+# STG-452: Capstone Project II
+# February 2, 2025
+# I used source code from the following 
+# website to complete this assignment:
+# https://chatgpt.com/share/6797eb56-3dd8-800e-946e-816dcd9e5c0e
+# (used as starter code for basic functionality).
+
 import pytest
 import logging
 import cv2 as cv
