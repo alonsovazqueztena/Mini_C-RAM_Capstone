@@ -1,21 +1,38 @@
-# file: frame_pipeline.py
+# Alonso Vazquez Tena
+# STG-452: Capstone Project II
+# February 2, 2025
+# I used source code from the following 
+# website to complete this assignment:
+# https://chatgpt.com/share/67a17189-ca30-800e-858d-aac289e6cb56
+# (used as starter code for basic functionality).
 
-import cv2 as cv
-import numpy as np
+# This project requires the usage of logs for the developer
+# to understand the conditions of the system, whether
+# an error has occurred or the execution of the class was a success.
 import logging
 
-from video_stream_manager import VideoStreamManager
-from frame_processor import FrameProcessor
-from yolo_model_interface import YOLOModelInterface
+# This project requires the usage of computer vision.
+
+# In this case, OpenCV will be used.
+import cv2 as cv
+
+# All the classes are imported from the src folder
+# to be used in the frame pipeline class.
 from detection_processor import DetectionProcessor
-from tracking_system import TrackingSystem  # <-- Import your tracker here
+from frame_processor import FrameProcessor
+from tracking_system import TrackingSystem
+from video_stream_manager import VideoStreamManager
+from yolo_model_interface import YOLOModelInterface
 
+# This class serves as a frame pipeline that 
+# captures frames from a video stream,
+# processes them, runs YOLO + detection filtering, 
+# then tracks objects over time.
 class FramePipeline:
-    """
-    A pipeline that captures frames from a video stream, processes them,
-    runs YOLO + detection filtering, then tracks objects over time.
-    """
+    """A pipeline that captures frames from a video stream, processes them, 
+    runs YOLO + detection filtering, then tracks objects over time."""
 
+    # This method initializes the frame pipeline.
     def __init__(
         self,
         capture_device=0,
@@ -28,44 +45,79 @@ class FramePipeline:
         detection_processor=None,
         tracking_system=None
     ):
+        """Initialize the frame pipeline.
+
+        Keyword arguments:
+        self -- instance of the frame pipeline,
+        frame_width -- width of the video frame,
+        frame_height -- height of the video frame,
+        target_width -- target width for a preprocessed frame,
+        target_height -- target height for a preprocessed frame,
+        model_path -- path to the YOLO model file,
+        confidence_threshold -- minimum confidence score for detections,
+        detection_processor -- instance of DetectionProcessor 
+        to filter detections,
+        tracking_system -- instance of TrackingSystem to track objects.
+        """
+        # Set up the video stream manager.
         self.video_stream = VideoStreamManager(
             capture_device=capture_device, 
             frame_width=frame_width, 
             frame_height=frame_height
         )
+
+        # Set up the frame processor.
         self.frame_processor = FrameProcessor(
             target_width=target_width, 
             target_height=target_height
         )
+
+        # Set up the YOLO model interface.
         self.yolo_model_interface = YOLOModelInterface(
             model_path=model_path,
             confidence_threshold=confidence_threshold
         )
-        # Either use provided detection processor or create one with default params
+
+        # Use a provided detection processor or create 
+        # one with default parameters.
         self.detection_processor = detection_processor or DetectionProcessor(
             target_classes=None, 
             confidence_threshold=confidence_threshold
         )
-        # Either use provided tracking system or create a default
+
+        # Use a provided tracking system or create one 
+        # with default parameters.
         self.tracking_system = tracking_system or TrackingSystem(
             max_disappeared=50, 
             max_distance=50
         )
 
-    def draw_detections(self, frame, detections):
-        """
-        Draw bounding boxes and centroids on the frame.
-        """
+    # This method draws the detections on the frame.
+    def draw_detections(
+            self, frame, 
+            detections):
+        """Draw bounding boxes and centroids on the frame."""
+
+        # Each detection is iterated over. Their bounding box,
+        # confidence, and class ID are extracted.
         for det in detections:
-            bbox = det["bbox"]
-            confidence = det["confidence"]
-            class_id = det["class_id"]
-            x_min, y_min, x_max, y_max = map(int, bbox)
+            bbox = det[
+                "bbox"]
+            confidence = det[
+                "confidence"]
+            class_id = det[
+                "class_id"]
+            x_min, y_min, x_max, y_max = map(
+                int, bbox)
 
-            # Draw bounding box
-            cv.rectangle(frame, (x_min, y_min), (x_max, y_max), (0, 255, 0), 2)
+            # The bounding box is drawn in green.
+            cv.rectangle(
+                frame, (x_min, y_min), 
+                (x_max, y_max), (0, 255, 0), 2
+                )
 
-            # Label
+            # A label is added to the bounding box 
+            # with the class ID and confidence.
             label = f"ID:{class_id} Conf:{confidence:.2f}"
             cv.putText(
                 frame, label, (x_min, y_min - 5), 
@@ -73,75 +125,115 @@ class FramePipeline:
                 (0, 255, 0), 1
             )
             
-            # Draw centroid, if present
+            # This draws the centroid, if present.
             if "centroid" in det:
-                cx, cy = det["centroid"]
-                cv.circle(frame, (int(cx), int(cy)), 3, (0, 0, 255), -1)
+                cx, cy = det[
+                    "centroid"]
+                cv.circle(
+                    frame, (int(cx), int(cy)), 
+                    3, (0, 0, 255), -1
+                    )
 
-    def draw_tracked_objects(self, frame, tracked_objects):
-        """
-        Draw tracked object IDs and centroids. Each tracked object
-        is an entry: object_id -> { ... detection dict ... }.
-        """
+    # This method draws the tracked objects on the frame.
+    def draw_tracked_objects(
+            self, frame, 
+            tracked_objects):
+        """Draws tracked object IDs and centroids."""
+
+        # Each tracked object is iterated over.
         for object_id, detection in tracked_objects.items():
-            # detection should contain bbox, centroid, class_id, etc.
-            bbox = detection["bbox"]
-            x_min, y_min, x_max, y_max = map(int, bbox)
-            cx, cy = detection["centroid"]
 
-            # Draw bounding box in a different color for tracking
-            cv.rectangle(frame, (x_min, y_min), (x_max, y_max), (255, 0, 0), 2)
+            # Each detection is to have a boundary box, centroid, class_id, etc.
+            bbox = detection[
+                "bbox"]
+            x_min, y_min, x_max, y_max = map(
+                int, bbox)
+            cx, cy = detection[
+                "centroid"]
 
-            # Put text with the tracker ID
+            # This draws bounding box in red for tracking.
+            cv.rectangle(frame, (x_min, y_min), 
+                         (x_max, y_max), (255, 0, 0), 2
+                         )
+
+            # This puts the text with the tracker ID.
             cv.putText(
                 frame, f"Obj {object_id}", (x_min, y_min - 10),
                 cv.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1
-            )
+                )
 
-            # Draw the centroid
-            cv.circle(frame, (int(cx), int(cy)), 4, (255, 0, 0), -1)
+            # This draws the centroid.
+            cv.circle(frame, (int(cx), int(cy)), 
+                      4, (255, 0, 0), -1
+                      )
 
-    def run(self):
-        """
-        Captures frames, runs preprocessing + YOLO + detection processing,
+    # This method runs the frame pipeline.
+    def run(
+            self):
+        """Captures frames, runs preprocessing + YOLO + detection processing,
         then updates the tracking system and displays both YOLO detections
-        and tracked objects in real time.
-        """
-        try:
-            with self.video_stream as stream:
-                logging.info("Starting the pipeline with tracking...")
+        and tracked objects in real time."""
 
+        try:
+            # Start the video stream.
+            with self.video_stream as stream:
+                logging.info(
+                    "Starting the pipeline with tracking..."
+                    )
+
+                # Run as long as frames are available.
                 while True:
                     frame = stream.get_frame()
                     if frame is None:
-                        logging.warning("No frame captured. Exiting the pipeline.")
+                        logging.warning(
+                            "No frame captured. Exiting the pipeline."
+                            )
                         break
 
-                    # Preprocess frame for YOLO (resize, normalize)
-                    processed_frame = self.frame_processor.preprocess_frame(frame)
-                    # YOLO expects shape (H,W,3)
-                    raw_detections = self.yolo_model_interface.predict(processed_frame[0])
+                    # This preprocesses frame for the YOLO model.
+                    processed_frame = self.frame_processor.preprocess_frame(
+                        frame)
+
+                    # This predicts detections using the YOLO model.
+                    raw_detections = self.yolo_model_interface.predict(
+                        processed_frame[0])
                     
-                    # Filter + add centroid
-                    processed_detections = self.detection_processor.process_detections(raw_detections)
+                    # This filters detections and adds centroids.
+                    processed_detections = self.detection_processor.process_detections(
+                        raw_detections)
                     
-                    # Update tracking system with the processed detections
-                    tracked_objects = self.tracking_system.update(processed_detections)
+                    # This updates the tracking system with the processed detections.
+                    tracked_objects = self.tracking_system.update(
+                        processed_detections)
 
-                    # Draw YOLO bounding boxes in green (for debugging)
-                    self.draw_detections(frame, processed_detections)
-                    # Draw tracked objects in blue
-                    self.draw_tracked_objects(frame, tracked_objects)
+                    # This draws the YOLO bounding boxes.
+                    self.draw_detections(
+                        frame, processed_detections
+                        )
 
-                    cv.imshow("Frame with Tracking", frame)
+                    # This draws tracked objects.
+                    self.draw_tracked_objects(
+                        frame, tracked_objects
+                        )
 
-                    # Press 'q' to quit
+                    # This displays the frame with tracking.
+                    cv.imshow(
+                        "Frame with Tracking", frame
+                        )
+
+                    # This handles the button 'q' to quit.
                     if cv.waitKey(1) & 0xFF == ord('q'):
                         break
-
+        
+        # This handles exceptions and logs them.
         except Exception as e:
-            logging.error(f"Error in FramePipeline run: {e}")
+            logging.error(
+                f"Error in FramePipeline run: {e}"
+                )
+        # This ensures that resources are released and windows are closed.
         finally:
-            logging.info("Releasing resources and closing windows.")
+            logging.info(
+                "Releasing resources and closing windows."
+                )
             self.video_stream.release_stream()
             cv.destroyAllWindows()

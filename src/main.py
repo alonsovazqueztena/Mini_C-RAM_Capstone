@@ -1,3 +1,5 @@
+
+
 import cv2 as cv
 import logging
 
@@ -176,6 +178,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-

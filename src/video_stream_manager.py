@@ -3,7 +3,7 @@
 # January 13, 2025
 # I used source code from the following 
 # website to complete this assignment:
-# https://chatgpt.com/share/67858756-0f30-800e-9d01-248c34adccea
+# https://chatgpt.com/share/67a05526-d4d8-800e-8e0d-67b03ca451a8
 # (used as starter code for basic functionality).
 
 # This project requires the usage of logs for the developer
