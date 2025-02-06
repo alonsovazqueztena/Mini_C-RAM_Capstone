@@ -1,6 +1,6 @@
 # Alonso Vazquez Tena
 # STG-452: Capstone Project II
-# February 2, 2025
+# February 3, 2025
 # I used source code from the following 
 # website to complete this assignment:
 # https://chatgpt.com/share/67a17189-ca30-800e-858d-aac289e6cb56
@@ -75,7 +75,7 @@ def test_frame_processor():
 
         # This loads a dummy frame for testing.
         dummy_frame = cv.imread(
-            "test/drone_mock_test_1.jpg")
+            "../test/drone_mock_test_1.jpg")
         
         # If the dummy frame is empty or cannot be found, an error is raised.
         if dummy_frame is None:
@@ -119,7 +119,7 @@ def test_yolo_model_interface():
 
         # A test image is loaded for YOLO.
         test_img = cv.imread(
-            "test/drone_mock_test_1.jpg")
+            "../test/drone_mock_test_1.jpg")
         
         # If the test image is empty or cannot be found, an error is raised.
         if test_img is None:
@@ -159,7 +159,7 @@ def test_detection_processor():
 
         # The test image is loaded for YOLO.
         test_img = cv.imread(
-            "test/drone_mock_test_1.jpg")
+            "../test/drone_mock_test_1.jpg")
         
         # If the test image is empty or cannot be found, an error is raised.
         if test_img is None:

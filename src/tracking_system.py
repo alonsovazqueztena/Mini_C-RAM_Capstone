@@ -1,6 +1,6 @@
 # Alonso Vazquez Tena
 # STG-452: Capstone Project II
-# February 2, 2025
+# February 3, 2025
 # I used source code from the following 
 # website to complete this assignment:
 # https://chatgpt.com/share/67a05526-d4d8-800e-8e0d-67b03ca451a8
@@ -84,7 +84,7 @@ class TrackingSystem:
                 self.register(
                     det)
         else:
-            
+
             # Prepare to match current tracked objects to new detections via centroid distance.
             object_ids = list(
                 self.objects.keys())

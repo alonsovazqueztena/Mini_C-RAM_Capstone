@@ -167,3 +167,11 @@ MIT License - See LICENSE for details
 
 **Mentor**: Ryan Woodward  
 *University of Advanced Robotics, 2023*
+
+## Citations & Acknowledgements
+**YOLOv11n**  
+> Glenn Jocher and Jing Qiu.  
+> *Ultralytics YOLO11, version 11.0.0 (2024)*  
+> [GitHub Repository](https://github.com/ultralytics/ultralytics)  
+> ORCID: 0000-0001-5950-6979, 0000-0002-7603-6750, 0000-0003-3783-7069  
+> License: AGPL-3.0
