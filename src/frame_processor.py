@@ -85,6 +85,7 @@ class FrameProcessor:
         # This converts the frame from BGR to RGB for YOLO input.
         rgb_frame = cv.cvtColor(
             resized_frame, cv.COLOR_BGR2RGB)
+        rgb_frame = rgb_frame.astype(np.float32)
         logging.info(
             "Converted frame from BGR to RGB."
             )
@@ -102,6 +103,10 @@ class FrameProcessor:
         logging.info(
             f"Added batch dimension. Preprocessed frame shape: {preprocessed_frame.shape}"
             )
+        
+        # Transpose to (batch, channels, height, width) if your YOLO model expects it
+        preprocessed_frame = preprocessed_frame.transpose(0, 3, 1, 2)
+        logging.info(f"Added batch dimension and transposed frame. Preprocessed frame shape: {preprocessed_frame.shape}")
         
         # We return the preprocessed frame.
         return preprocessed_frame

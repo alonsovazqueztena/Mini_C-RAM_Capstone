@@ -11,6 +11,10 @@
 # an error has occurred or the execution of the class was a success.
 import logging
 
+import numpy as np
+
+import cv2 as cv
+
 # We are using the YOLOv11n model for object detection.
 from ultralytics import YOLO
 
@@ -29,7 +33,7 @@ class YOLOModelInterface:
     # confidence score for detections.
     def __init__(
             self, model_path="yolo_epoch_100.pt", 
-            confidence_threshold=0.1):
+            confidence_threshold=0.5):
         """
         Initializes the YOLO model interface.
 
@@ -67,6 +71,18 @@ class YOLOModelInterface:
         """Runs inference on a single frame and extracts detections."""
 
         try:
+
+            # If the frame has shape (3, H, W), convert it to (H, W, 3)
+            if isinstance(frame, np.ndarray) and frame.ndim == 3 and frame.shape[0] == 3:
+                frame = frame.transpose(1, 2, 0)
+
+            # If the frame is normalized (float32 with max value <= 1.0), convert it back.
+            if isinstance(frame, np.ndarray) and frame.dtype == np.float32 and frame.max() <= 1.0:
+                frame = (frame * 255).astype(np.uint8)
+                # The frame was converted to RGB in your FrameProcessor,
+                # but YOLO expects BGR. Convert it back:
+                frame = cv.cvtColor(frame, cv.COLOR_RGB2BGR)
+
             # This runs an inference on a frame.
             results = self.model.predict(
                 source=frame, imgsz=640, 
@@ -111,6 +127,19 @@ class YOLOModelInterface:
         """Runs inference on a batch of frames and extract detections."""
         
         try:
+            processed_frames = []
+            for frame in frames:
+                if isinstance(frame, np.ndarray) and frame.ndim == 3 and frame.shape[0] == 3:
+                    frame = frame.transpose(1, 2, 0)
+                processed_frames.append(frame)
+
+                # If the frame is normalized (float32 with max value <= 1.0), convert it back.
+                if isinstance(frame, np.ndarray) and frame.dtype == np.float32 and frame.max() <= 1.0:
+                    frame = (frame * 255).astype(np.uint8)
+                    # The frame was converted to RGB in your FrameProcessor,
+                    # but YOLO expects BGR. Convert it back:
+                    frame = cv.cvtColor(frame, cv.COLOR_RGB2BGR)
+            
             # This runs an inference on a batch of frames.
             results = self.model.predict(
                 source=frames, imgsz=640, 
