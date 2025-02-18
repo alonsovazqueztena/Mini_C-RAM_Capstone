@@ -64,9 +64,9 @@ Edit `config.yaml`:
 
 ```yaml
 camera:
-  device: 0              # /dev/video0
-  resolution: [640, 480] # Input resolution
-  fps: 30                # Target FPS
+  device: 0                # /dev/video0
+  resolution: [1920, 1080] # Input resolution
+  fps: 30                  # Target FPS
 
 detection:
   model: yolo_epoch_100.pt
