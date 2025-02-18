@@ -37,8 +37,8 @@ def test_video_stream_manager():
     try:
         # This initializes the video stream manager.
         video_stream = VideoStreamManager(
-            capture_device=0, frame_width=640, 
-            frame_height=480)
+            capture_device=0, frame_width=1920, 
+            frame_height=1080)
         
         # This captures a single frame.
         with video_stream as stream:
@@ -75,7 +75,7 @@ def test_frame_processor():
 
         # This loads a dummy frame for testing.
         dummy_frame = cv.imread(
-            "../test/drone_mock_test_1.jpg")
+            "../images/drone_mock_test_1.jpg")
         
         # If the dummy frame is empty or cannot be found, an error is raised.
         if dummy_frame is None:
@@ -115,11 +115,11 @@ def test_yolo_model_interface():
         # This initializes the YOLO model interface.
         yolo_interface = YOLOModelInterface(
             model_path="yolo_epoch_100.pt", 
-            confidence_threshold=0.5)
+            confidence_threshold=0.1)
 
         # A test image is loaded for YOLO.
         test_img = cv.imread(
-            "../test/drone_mock_test_1.jpg")
+            "../images/drone_mock_test_1.jpg")
         
         # If the test image is empty or cannot be found, an error is raised.
         if test_img is None:
@@ -155,11 +155,11 @@ def test_detection_processor():
         # The YOLO model interface is initialized.
         yolo_interface = YOLOModelInterface(
             model_path="yolo_epoch_100.pt", 
-            confidence_threshold=0.3)
+            confidence_threshold=0.1)
 
         # The test image is loaded for YOLO.
         test_img = cv.imread(
-            "../test/drone_mock_test_1.jpg")
+            "../images/drone_mock_test_1.jpg")
         
         # If the test image is empty or cannot be found, an error is raised.
         if test_img is None:
@@ -211,12 +211,12 @@ def test_frame_pipeline():
         # The frame pipeline is initialized.
         pipeline = FramePipeline(
             capture_device=0, 
-            frame_width=640, 
-            frame_height=480, 
+            frame_width=1920, 
+            frame_height=1080, 
             target_width=640, 
             target_height=640,
             model_path="yolo_epoch_100.pt",
-            confidence_threshold=0.5
+            confidence_threshold=0.1
         )
 
         # The frame pipeline is run and stops when the user quits.
@@ -251,12 +251,12 @@ def test_frame_pipeline_with_tracking():
         # Initialize the FramePipeline and pass the tracker.
         pipeline = FramePipeline(
             capture_device=0, 
-            frame_width=640, 
-            frame_height=480, 
+            frame_width=1920, 
+            frame_height=1080, 
             target_width=640, 
             target_height=640,
             model_path="yolo_epoch_100.pt",
-            confidence_threshold=0.5,
+            confidence_threshold=0.1,
             detection_processor=None,
             tracking_system=tracker
         )

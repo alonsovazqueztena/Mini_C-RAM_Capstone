@@ -17,7 +17,7 @@ class DetectionProcessor:
     # This method initializes the detection processor.
     def __init__(
             self, target_classes=None, 
-            confidence_threshold=0.5):
+            confidence_threshold=0.1):
         """ Initializes the detection processor.
 
         Keyword arguments:

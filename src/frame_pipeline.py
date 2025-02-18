@@ -37,12 +37,12 @@ class FramePipeline:
     def __init__(
         self,
         capture_device=0,
-        frame_width=640,
-        frame_height=480,
+        frame_width=1920,
+        frame_height=1080,
         target_width=640,
         target_height=640,
         model_path="yolo_epoch_100.pt",
-        confidence_threshold=0.5,
+        confidence_threshold=0.1,
         detection_processor=None,
         tracking_system=None
     ):
