@@ -90,6 +90,10 @@ class YOLOModelInterface:
 
             # This processes the results by adding the detection to a list.
             detections = []
+
+            # Considered drone labels
+            allowed_labels = {"0", "drone", "quadricopter"}
+
             for result in results:
 
                 # This checks if any boxes are available.
@@ -101,14 +105,16 @@ class YOLOModelInterface:
                         confidence = box.conf[0].item()
                         class_id = int(
                             box.cls[0].item())
+                        label = self.model.names[class_id]
 
                         # If a detection is above the confidence threshold,
                         # it is added to the list of detections.
-                        if confidence >= self.confidence_threshold:
+                        if confidence >= self.confidence_threshold and label.lower() in allowed_labels:
                             detections.append({
                                 "bbox": [x_min, y_min, x_max, y_max],
                                 "confidence": confidence,
-                                "class_id": class_id
+                                "class_id": class_id,
+                                "label": label
                             })
 
             # This logs the detections.
