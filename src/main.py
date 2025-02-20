@@ -115,7 +115,7 @@ def test_yolo_model_interface():
         # This initializes the YOLO model interface.
         yolo_interface = YOLOModelInterface(
             model_path="yolo_epoch_100.pt", 
-            confidence_threshold=0.75)
+            confidence_threshold=0.5)
 
         # A test image is loaded for YOLO.
         test_img = cv.imread(
@@ -155,7 +155,7 @@ def test_detection_processor():
         # The YOLO model interface is initialized.
         yolo_interface = YOLOModelInterface(
             model_path="yolo_epoch_100.pt", 
-            confidence_threshold=0.75)
+            confidence_threshold=0.5)
 
         # The test image is loaded for YOLO.
         test_img = cv.imread(
@@ -216,7 +216,7 @@ def test_frame_pipeline():
             target_width=1920, 
             target_height=1080,
             model_path="yolo_epoch_100.pt",
-            confidence_threshold=0.75
+            confidence_threshold=0.5
         )
 
         # The frame pipeline is run and stops when the user quits.
@@ -256,7 +256,7 @@ def test_frame_pipeline_with_tracking():
             target_width=1920, 
             target_height=1080,
             model_path="yolo_epoch_100.pt",
-            confidence_threshold=0.75,
+            confidence_threshold=0.5,
             detection_processor=None,
             tracking_system=tracker
         )
