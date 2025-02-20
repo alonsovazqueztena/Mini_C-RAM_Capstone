@@ -117,14 +117,24 @@ class FramePipeline:
                 (x_max, y_max), (0, 255, 0), 2
                 )
 
-            # A label is added to the bounding box 
-            # with the class ID and confidence.
-            label = f"ID:{class_id} Conf:{confidence:.2f}"
-            cv.putText(
-                frame, label, (x_min, y_min - 5), 
-                cv.FONT_HERSHEY_SIMPLEX, 0.5, 
-                (0, 255, 0), 1
-            )
+             # Prepare the label text.
+            label = f"drone {confidence:.2f}"
+            font = cv.FONT_HERSHEY_TRIPLEX
+            font_scale = 2
+            thickness = 4
+
+            # Get the size of the text box and the baseline.
+            (text_width, text_height), baseline = cv.getTextSize(label, font, font_scale, thickness)
+            margin = 5
+
+            # Draw a filled rectangle (black) as background for the label.
+            cv.rectangle(frame,
+                (x_min, y_min - text_height - baseline - margin),
+                (x_min + text_width, y_min),
+                (0, 0, 0), -1)
+
+            # Draw the text (green) on top of the rectangle.
+            cv.putText(frame, label, (x_min, y_min - margin), font, font_scale, (0, 255, 0), thickness)
             
             # This draws the centroid, if present.
             if "centroid" in det:
@@ -158,10 +168,10 @@ class FramePipeline:
                          )
 
             # This puts the text with the tracker ID.
-            cv.putText(
-                frame, f"Obj {object_id}", (x_min, y_min - 10),
-                cv.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1
-                )
+            # cv.putText(
+            #    frame, f"Drone {object_id}", (x_min, y_min - 10),
+            #    cv.FONT_HERSHEY_TRIPLEX, 2, (255, 0, 0), 4
+            #    )
 
             # This draws the centroid.
             cv.circle(frame, (int(cx), int(cy)), 
