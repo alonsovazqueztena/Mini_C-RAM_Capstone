@@ -37,10 +37,10 @@ class FramePipeline:
     def __init__(
         self,
         capture_device=0,
-        frame_width=1920,
-        frame_height=1080,
-        target_width=640,
-        target_height=640,
+        frame_width=2704,
+        frame_height=1440,
+        target_width=2704,
+        target_height=1440,
         model_path="yolo_epoch_100.pt",
         confidence_threshold=0.5,
         detection_processor=None,
@@ -181,6 +181,9 @@ class FramePipeline:
                 logging.info(
                     "Starting the pipeline with tracking..."
                     )
+                
+                cv.namedWindow("Frame with Tracking", cv.WINDOW_NORMAL)
+                cv.resizeWindow("Frame with Tracking", 800, 600)  # Adjust width and height as needed
 
                 # Run as long as frames are available.
                 while True:

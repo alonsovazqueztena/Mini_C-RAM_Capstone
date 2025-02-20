@@ -37,8 +37,8 @@ def test_video_stream_manager():
     try:
         # This initializes the video stream manager.
         video_stream = VideoStreamManager(
-            capture_device=0, frame_width=1920, 
-            frame_height=1080)
+            capture_device=0, frame_width=2704, 
+            frame_height=2028)
         
         # This captures a single frame.
         with video_stream as stream:
@@ -71,7 +71,7 @@ def test_frame_processor():
     try:
         # This initializes the frame processor.
         processor = FrameProcessor(
-            target_width=640, target_height=640)
+            target_width=2704, target_height=2028)
 
         # This loads a dummy frame for testing.
         dummy_frame = cv.imread(
@@ -211,10 +211,10 @@ def test_frame_pipeline():
         # The frame pipeline is initialized.
         pipeline = FramePipeline(
             capture_device=0, 
-            frame_width=1920, 
-            frame_height=1080, 
-            target_width=640, 
-            target_height=640,
+            frame_width=2704, 
+            frame_height=2028, 
+            target_width=2704, 
+            target_height=2028,
             model_path="yolo_epoch_100.pt",
             confidence_threshold=0.5
         )
@@ -251,10 +251,10 @@ def test_frame_pipeline_with_tracking():
         # Initialize the FramePipeline and pass the tracker.
         pipeline = FramePipeline(
             capture_device=0, 
-            frame_width=1920, 
-            frame_height=1080, 
-            target_width=640, 
-            target_height=640,
+            frame_width=2704, 
+            frame_height=2028, 
+            target_width=2704, 
+            target_height=2028,
             model_path="yolo_epoch_100.pt",
             confidence_threshold=0.5,
             detection_processor=None,

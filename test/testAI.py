@@ -15,7 +15,7 @@ model = YOLO("..\src\yolo_epoch_100.pt")
 # the image size is set to 640, and the processed 
 # image is displayed and saved.
 results = model.predict(
-    "drone_real_test_10.jpg", conf=0.5, 
+    "..\images\drone_real_test_10.jpg", conf=0.5, 
     imgsz=640, show=True, save=True)
 
 # We print the bounding boxes of the detected objects here.
