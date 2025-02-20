@@ -33,7 +33,7 @@ class VideoStreamManager:
     # in, all as arguments.
     def __init__(
             self, capture_device=0, 
-            frame_width=2704, frame_height=2028):
+            frame_width=1920, frame_height=1080):
         """Initialize the video stream manager.
         
         Keyword arguments:
