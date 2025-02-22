@@ -1,6 +1,6 @@
 # Alonso Vazquez Tena
 # STG-452: Capstone Project II
-# February 21, 2025
+# February 22, 2025
 # I used source code from the following 
 # website to complete this assignment:
 # https://chatgpt.com/share/67a05526-d4d8-800e-8e0d-67b03ca451a8
@@ -10,14 +10,6 @@
 # to understand the conditions of the system, whether
 # an error has occurred or the execution of the class was a success.
 import logging
-
-# To ensure proper color format for the AI model, we
-# require the usage of OpenCV.
-import cv2 as cv
-
-# Utilizing AI models requires the usage of arrays and matrices
-# for data processing.
-import numpy as np
 
 # We are using a YOLOv11n model for object detection.
 from ultralytics import YOLO
@@ -82,28 +74,6 @@ class AIModelInterface:
 
         try:
 
-            # # This checks if the frame is a NumPy array with 3 dimensions
-            # # and that there are 3 available channels.
-
-            # # The frame is transpose to have the format be width, height,
-            # # and channel.
-            # if isinstance(frame, 
-            #               np.ndarray) and frame.ndim == 3 and frame.shape[0] == 3:
-            #     frame = frame.transpose(
-            #         1, 2, 0)
-
-            # # We ensure that the frame has its normalization reversed.
-
-            # # This allows for the normalized pixel values to be normalized,
-            # # the data type to be changed to a valid type, and the color
-            # # format to be BGR (for YOLO input).
-            # if isinstance(frame, 
-            #               np.ndarray) and frame.dtype == np.float32 and frame.max() <= 1.0:
-            #     frame = (
-            #         frame * 255).astype(
-            #             np.uint8)
-            #     frame = cv.cvtColor(frame, cv.COLOR_RGB2BGR)
-
             # This runs an inference on a frame.
 
             # The frame size must be 640 for the YOLOv11n model.
@@ -163,19 +133,6 @@ class AIModelInterface:
         """Runs inference on a batch of frames and extract detections."""
         
         try:
-            # processed_frames = []
-            # for frame in frames:
-            #     if isinstance(frame, np.ndarray) and frame.ndim == 3 and frame.shape[0] == 3:
-            #         frame = frame.transpose(1, 2, 0)
-            #     processed_frames.append(frame)
-
-            #     # If the frame is normalized (float32 with max value <= 1.0), convert it back.
-            #     if isinstance(frame, np.ndarray) and frame.dtype == np.float32 and frame.max() <= 1.0:
-            #         frame = (frame * 255).astype(np.uint8)
-            #         # The frame was converted to RGB in your FrameProcessor,
-            #         # but YOLO expects BGR. Convert it back:
-            #         frame = cv.cvtColor(frame, cv.COLOR_RGB2BGR)
-            
             # This runs an inference on a batch of frames.
             results = self.model.predict(
                 source=frames, imgsz=640, 

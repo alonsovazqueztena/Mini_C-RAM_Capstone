@@ -109,13 +109,7 @@ class FramePipeline:
             x_min, y_min, x_max, y_max = map(
                 int, bbox)
 
-            # The bounding box is drawn in green.
-            cv.rectangle(
-                frame, (x_min, y_min), 
-                (x_max, y_max), (0, 255, 0), 2
-                )
-
-             # The label is prepared with the confidence.
+            # The label is prepared with the confidence.
             label = f"drone {confidence:.2f}"
             font = cv.FONT_HERSHEY_TRIPLEX
             font_scale = 2
@@ -140,15 +134,6 @@ class FramePipeline:
                        font, font_scale, 
                        (0, 255, 0), thickness
                        )
-            
-            # This draws the centroid, if present.
-            if "centroid" in det:
-                cx, cy = det[
-                    "centroid"]
-                cv.circle(
-                    frame, (int(cx), int(cy)), 
-                    3, (0, 0, 255), -1
-                    )
 
     # This method draws the tracked objects on the frame.
     def draw_tracked_objects(
@@ -157,7 +142,7 @@ class FramePipeline:
         """Draws tracked object IDs and centroids."""
 
         # Each tracked object is iterated over.
-        for detection in tracked_objects.items():
+        for detection in tracked_objects.values():
 
             # Each detection is to have a boundary box and centroid.
             bbox = detection[
@@ -167,14 +152,14 @@ class FramePipeline:
             cx, cy = detection[
                 "centroid"]
 
-            # This draws bounding box in red for tracking.
+            # This draws bounding box in green for tracking.
             cv.rectangle(frame, (x_min, y_min), 
-                         (x_max, y_max), (0, 0, 255), 2
+                         (x_max, y_max), (0, 255, 0), 2
                          )
 
             # This draws the centroid.
             cv.circle(frame, (int(cx), int(cy)), 
-                      4, (255, 0, 0), -1
+                      4, (0, 255, 0), -1
                       )
 
     # This method runs the frame pipeline.
@@ -193,12 +178,18 @@ class FramePipeline:
                 
                 # The window view to see the program execution
                 # is through here.
+
+                # The window is to be small enough for the user to
+                # see and is meant to automatically popup.
                 cv.namedWindow(
                     "Mini C-RAM View", 
                     cv.WINDOW_NORMAL)
                 cv.resizeWindow(
                     "Mini C-RAM View", 
                     800, 600)
+                cv.setWindowProperty(
+                    "Mini C-RAM View", 
+                    cv.WND_PROP_TOPMOST, 1)
 
                 # Run as long as frames are available.
                 while True:
@@ -237,7 +228,7 @@ class FramePipeline:
 
                     # This displays the frame with tracking.
                     cv.imshow(
-                        "Tracked Frame", frame
+                        "Mini C-RAM View", frame
                         )
 
                     # This handles the button 'q' to quit.

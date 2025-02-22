@@ -92,17 +92,8 @@ class FrameProcessor:
         preprocessed_frame = np.expand_dims(
             resized_frame, axis=0)
         logging.info(
-            f"Added batch dimension. Preprocessed frame 
-            shape: {preprocessed_frame.shape}"
+            f"Added batch dimension. Preprocessed frame shape: {preprocessed_frame.shape}"
             )
-        
-        # This transposing allows for the AI model to receive the
-        # frames in the format the model expects for processing.
-
-        # This format is expected to be batch, channels, width, and height. 
-        preprocessed_frame = preprocessed_frame.transpose(0, 3, 1, 2)
-        logging.info(f"Transposed frame. Preprocessed 
-                     frame shape: {preprocessed_frame.shape}")
         
         # We return the preprocessed frame.
         return preprocessed_frame
