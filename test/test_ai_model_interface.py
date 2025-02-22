@@ -1,10 +1,12 @@
 # Alonso Vazquez Tena
 # STG-452: Capstone Project II
-# February 3, 2025
+# February 21, 2025
 # I used source code from the following 
 # website to complete this assignment:
 # https://chatgpt.com/share/67a18fe4-56ec-800e-bf00-4af40519d328
 # (used as starter code for basic functionality).
+
+# This unit test is currently broken.
 
 # We import the Python testing library.
 import pytest
@@ -17,39 +19,39 @@ import numpy as np
 from unittest.mock import patch, MagicMock
 
 # We import the YOLOModelInterface class from the source code.
-from src.yolo_model_interface import YOLOModelInterface
+from src.ai_model_interface import AIModelInterface
 
-# We are testing the initialization of the YOLO model.
+# We are testing the initialization of the AI model.
 @patch(
-        "src.yolo_model_interface.YOLO")
+        "src.ai_model_interface.YOLO")
 def test_init_model_success(
-    mock_yolo):
+    mock_ai):
     """Testing that the model initializes successfully 
-    when YOLO loads without error."""
+    when AI loads without error."""
 
     # We are creating a mock YOLO model.
-    mock_yolo.return_value = MagicMock()
+    mock_ai.return_value = MagicMock()
 
     # We are initializing the YOLO model interface.
-    interface = YOLOModelInterface(
+    interface = AIModelInterface(
         model_path="fake_path.pt")
     
     # We expect the model to be assigned after a successful load.
     assert interface.model is not None, "Model should be assigned after successful load."
 
-# We are testing the failed initialization of the YOLO model.
+# We are testing the failed initialization of the AI model.
 @patch(
-        "src.yolo_model_interface.YOLO", 
+        "src.ai_model_interface.YOLO", 
         side_effect=Exception("Model load error"))
 def test_init_model_fail(
-    mock_yolo):
+    mock_ai):
     """Testing that an exception is raised 
-    when the YOLO model fails to load."""
+    when the AI model fails to load."""
 
     # We are expecting an exception to be 
     # raised if the model fails to load.
     with pytest.raises(Exception) as exc:
-        YOLOModelInterface(model_path="fake_path.pt")
+        AIModelInterface(model_path="fake_path.pt")
 
     # We expect the exception message to 
     # indicate that the model failed to load.
@@ -58,11 +60,11 @@ def test_init_model_fail(
 
 # We are testing the predict method with no detections.
 @patch(
-        "src.yolo_model_interface.YOLO")
+        "src.ai_model_interface.YOLO")
 def test_predict_empty_result(
-    mock_yolo):
+    mock_ai):
     """Testing that predict returns an empty list 
-    when the YOLO model returns no detections."""
+    when the AI model returns no detections."""
 
     # This is the mock model.
     mock_model = MagicMock()
@@ -70,11 +72,11 @@ def test_predict_empty_result(
     # The model predicts no detections.
     mock_model.predict.return_value = []
 
-    # We are mocking the YOLO model to return the mock model.
-    mock_yolo.return_value = mock_model
+    # We are mocking the AI model to return the mock model.
+    mock_ai.return_value = mock_model
 
-    # We are initializing the YOLO model interface.
-    interface = YOLOModelInterface(
+    # We are initializing the AI model interface.
+    interface = AIModelInterface(
         model_path="fake_path.pt")
     
     # A frame with no objects is created.
@@ -94,11 +96,11 @@ def test_predict_empty_result(
 
 # We are testing the predict method with valid detections.
 @patch(
-        "src.yolo_model_interface.YOLO")
+        "src.ai_model_interface.YOLO")
 def test_predict_with_results(
-    mock_yolo):
+    mock_ai):
     """Testing that predict parses and returns detections 
-    correctly when YOLO returns valid results."""
+    correctly when AI returns valid results."""
 
     # This mocks a single detection box.
     mock_box = MagicMock()
@@ -121,10 +123,10 @@ def test_predict_with_results(
     mock_model = MagicMock()
     mock_model.predict.return_value = [
         mock_result]
-    mock_yolo.return_value = mock_model
+    mock_ai.return_value = mock_model
 
-    # We are initializing the YOLO model interface.
-    interface = YOLOModelInterface(
+    # We are initializing the AI model interface.
+    interface = AIModelInterface(
         model_path="fake_path.pt", 
         confidence_threshold=0.5)
     
@@ -150,8 +152,8 @@ def test_predict_with_results(
 
 # We are testing the predict_batch method.
 @patch(
-        "src.yolo_model_interface.YOLO")
-def test_predict_batch(mock_yolo):
+        "src.ai_model_interface.YOLO")
+def test_predict_batch(mock_ai):
     """Testing that predict_batch processes 
     multiple frames and returns the correct detections."""
 
@@ -193,10 +195,10 @@ def test_predict_batch(mock_yolo):
     mock_model = MagicMock()
     mock_model.predict.return_value = [
         mock_result1, mock_result2]
-    mock_yolo.return_value = mock_model
+    mock_ai.return_value = mock_model
 
-    # We are initializing the YOLO model interface.
-    interface = YOLOModelInterface(
+    # We are initializing the AI model interface.
+    interface = AIModelInterface(
         model_path="fake_path.pt", 
         confidence_threshold=0.5)
     

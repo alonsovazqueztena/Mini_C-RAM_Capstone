@@ -1,6 +1,6 @@
 # Alonso Vazquez Tena
 # STG-452: Capstone Project II
-# January 13, 2025
+# February 21, 2025
 # I used source code from the following 
 # website to complete this assignment:
 # https://chatgpt.com/share/67a05526-d4d8-800e-8e0d-67b03ca451a8
@@ -27,10 +27,13 @@ class VideoStreamManager:
 
     # This method initializes the video stream manager.
     
-    # The captured device is taken in as an index,
-    # the matching width and height of the lowest available video frame
-    # resolution from the GoPro Hero 5 Black is also taken 
-    # in, all as arguments.
+    # The captured device is taken in as an index and
+    # full HD resolution from the GoPro Hero 5 Black is taken 
+    # in as frame arguments.
+
+    # Adjust the capture device index accordingly to
+    # to your device as well as the resolution of
+    # your camera.
     def __init__(
             self, capture_device=0, 
             frame_width=1920, frame_height=1080):
@@ -39,8 +42,8 @@ class VideoStreamManager:
         Keyword arguments:
         self -- instance of the video stream manager
         capture_device -- index of video capture stream device (default 0)
-        frame_width -- width of video capture stream frame (default 848)
-        frame_height -- height of video capture stream frame (default 480)
+        frame_width -- width of video capture stream frame (default 1920)
+        frame_height -- height of video capture stream frame (default 1080)
         """
         self.capture_device = capture_device
         self.frame_width = frame_width
@@ -85,14 +88,14 @@ class VideoStreamManager:
             cv.CAP_PROP_HW_ACCELERATION, cv.VIDEO_ACCELERATION_ANY
             )
 
-        # This checks if the HDMI capture card was able 
-        # to be connected to and opened.
+        # This checks if capture device can be connected to
+        # and opened.
         if not self.capture.isOpened():
-            logging.error(
-                "HDMI capture card open failed."
+            logging.critical(
+                "Capture device open failed."
                 )
             raise RuntimeError(
-                "ERROR: Cannot open the HDMI capture card."
+                "ERROR: Cannot open the capture device."
                 )
 
         # This message is displayed through a log that 
@@ -108,11 +111,11 @@ class VideoStreamManager:
             self):
         """Retrieve the frame from the video stream."""
 
-        # If the HDMI capture card cannot be opened or 
-        # there is no HDMI capture card detected,
-        # an error is raised and output in a log.
+        # If there is no way to capture the video stream anymore,
+        # whether through a webcam or capture card, an error is
+        # raised and output in a log.
         if not self.capture or not self.capture.isOpened():
-            logging.error(
+            logging.critical(
                 "The video stream is not initialized."
                 )
             raise RuntimeError(
@@ -122,16 +125,21 @@ class VideoStreamManager:
         # A boolean condition is checked if the
         # frame from the HDMI capture card can be received.
         ret, frame = self.capture.read()
+
+        # If the frame cannot be captured, an error is 
+        # raised and output in a log.
         if not ret:
             logging.error(
                 "Failed to capture the frame."
                 )
-            return None
+            raise RuntimeError(
+                "ERROR: The frames cannot be captured."
+            )
 
-        # If an invalid frame is received, an error is 
-        # raised and output in a log.
+        # If an invalid frame is received, output a warning 
+        # in a log.
         if frame is None:
-            logging.error(
+            logging.warning(
                 "The captured frame is None (invalid)."
                 )
             return None
@@ -156,9 +164,6 @@ class VideoStreamManager:
             self.capture.release()
             logging.info(
                 "The video stream was released."
-                )
-            print(
-                "The video stream was successfully released."
                 )
 
     # This is a simple enter method that only initializes the stream.

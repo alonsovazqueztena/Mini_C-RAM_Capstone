@@ -6,11 +6,13 @@
 # https://chatgpt.com/share/6797eb56-3dd8-800e-946e-816dcd9e5c0e
 # (used as starter code for basic functionality).
 
+# This unit test is currently broken.
+
 # We import the Python testing library.
 import pytest
 
 # Many of our tests rely on mocking objects (images, 
-# the YOLO model, etc.).
+# the AI model, etc.).
 
 # We can use the `MagicMock` class from the `unittest.mock` 
 # module to create mock objects.
@@ -33,7 +35,7 @@ def manager():
     VideoStreamManager for each test."""
 
     return VideoStreamManager(capture_device=0,
-                              frame_width=848, frame_height=480
+                              frame_width=1920, frame_height=1080
                               )
 
 # We are testing the initialization of the VideoStreamManager class.
@@ -43,8 +45,8 @@ def test_init(
 
     # We are checking the default values of the VideoStreamManager.
     assert manager.capture_device == 0
-    assert manager.frame_width == 848
-    assert manager.frame_height == 480
+    assert manager.frame_width == 1920
+    assert manager.frame_height == 1080
     assert manager.capture is None
 
 # Utilizing our fixture, we are testing 
@@ -78,10 +80,10 @@ def test_initialize_stream_success(
     # Check that .set(...) was called with correct 
     # width, height, and hardware acceleration.
     mock_capture.set.assert_any_call(
-        cv.CAP_PROP_FRAME_WIDTH, 848
+        cv.CAP_PROP_FRAME_WIDTH, 1920
         )
     mock_capture.set.assert_any_call(
-        cv.CAP_PROP_FRAME_HEIGHT, 480
+        cv.CAP_PROP_FRAME_HEIGHT, 1080
         )
     mock_capture.set.assert_any_call(
         cv.CAP_PROP_HW_ACCELERATION, 

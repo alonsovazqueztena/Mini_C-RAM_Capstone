@@ -6,6 +6,8 @@
 # https://chatgpt.com/share/67a18fe4-56ec-800e-bf00-4af40519d328
 # (used as starter code for basic functionality).
 
+# This unit test is currently broken.
+
 # # We import the Python testing library.
 import pytest
 

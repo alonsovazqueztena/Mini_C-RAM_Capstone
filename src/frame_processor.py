@@ -1,6 +1,6 @@
 # Alonso Vazquez Tena
 # STG-452: Capstone Project II
-# February 3, 2025
+# February 21, 2025
 # I used source code from the following 
 # website to complete this assignment:
 # https://chatgpt.com/share/67a05526-d4d8-800e-8e0d-67b03ca451a8
@@ -21,7 +21,7 @@ import cv2 as cv
 import numpy as np
 
 
-# This class serves to process frames for the YOLO model.
+# This class serves to process frames for the AI model.
 
 # This ensures that the frames can be processed to ensure
 # more accurate object detection.
@@ -31,6 +31,9 @@ class FrameProcessor:
     # This method initializes the frame processor.
     
     # The target width and height of the frame are taken in as arguments.
+
+    # This can be adjusted as necessary, in this case, we keep
+    # it as the full HD resolution.
     def __init__(
             self, target_width=1920, 
             target_height=1080):
@@ -38,8 +41,8 @@ class FrameProcessor:
 
         Keyword arguments:
         self -- instance of the frame processor
-        target_width -- target width of the frame (default 640)
-        target_height -- target height of the frame (default 640)
+        target_width -- target width of the frame (default 1920)
+        target_height -- target height of the frame (default 1080)
         """
         self.target_width = target_width
         self.target_height = target_height
@@ -53,10 +56,10 @@ class FrameProcessor:
             format="%(asctime)s - %(levelname)s - %(message)s"
             )
     
-    # This preprocesses a single frame for YOLO input.
+    # This preprocesses a single frame for AI input.
     def preprocess_frame(
             self, frame):
-        """Preprocess a single frame for YOLO input."""
+        """Preprocess a single frame for AI input."""
 
         # If the frame is invalid or empty, an error is logged and raised.
         if frame is None or frame.size == 0:
@@ -64,7 +67,7 @@ class FrameProcessor:
                 "Invalid frame provided for preprocessing."
                 )
             raise ValueError(
-                "Invalid frame provided for preprocessing."
+                "ERROR: Invalid frame provided."
                 )
 
         # The original frame size is logged.
@@ -79,42 +82,37 @@ class FrameProcessor:
         
         # This demonstrates in a log what dimension the frame was resized to.
         logging.info(
-            f"Resized frame to: {self.target_width}x{self.target_height}"
+            f"Resized frame to: {self.target_width} by {self.target_height}"
             )
 
-        # This converts the frame from BGR to RGB for YOLO input.
-        rgb_frame = cv.cvtColor(
-            resized_frame, cv.COLOR_BGR2RGB)
-        rgb_frame = rgb_frame.astype(np.float32)
-        logging.info(
-            "Converted frame from BGR to RGB."
-            )
+        # This adds a batch dimension as the AI model expects 4D input: 
+        # batch, width, height, and channels.
 
-        # This normalizes pixel values to range [0, 1].
-        normalized_frame = rgb_frame / 255.0
-        logging.info(
-            "Normalized frame pixel values to range [0, 1]."
-            )
-
-        # This adds a batch dimension as YOLO expects 4D input: 
-        # batch_size, width, height, and channels.
+        # We are looking at one frame at a time for the batch.
         preprocessed_frame = np.expand_dims(
-            normalized_frame, axis=0)
+            resized_frame, axis=0)
         logging.info(
-            f"Added batch dimension. Preprocessed frame shape: {preprocessed_frame.shape}"
+            f"Added batch dimension. Preprocessed frame 
+            shape: {preprocessed_frame.shape}"
             )
         
-        # Transpose to (batch, channels, height, width) if your YOLO model expects it
+        # This transposing allows for the AI model to receive the
+        # frames in the format the model expects for processing.
+
+        # This format is expected to be batch, channels, width, and height. 
         preprocessed_frame = preprocessed_frame.transpose(0, 3, 1, 2)
-        logging.info(f"Added batch dimension and transposed frame. Preprocessed frame shape: {preprocessed_frame.shape}")
+        logging.info(f"Transposed frame. Preprocessed 
+                     frame shape: {preprocessed_frame.shape}")
         
         # We return the preprocessed frame.
         return preprocessed_frame
 
-    # This preprocesses multiple frames for YOLO input.
+    # This preprocesses multiple frames for AI input.
 
     # This takes a list of frames and returns a 
     # batch of preprocessed frames.
+
+    # This method is not used, but is available to be included and adapted.
     def preprocess_frames(
             self, frames):
         """Preprocesses multiple frames for YOLO input."""
@@ -126,7 +124,7 @@ class FrameProcessor:
                 "Invalid list of frames provided for batch preprocessing."
                 )
             raise ValueError(
-                "Invalid list of frames provided for batch preprocessing."
+                "ERROR: Invalid list of frames provided."
                 )
         
         # The number of frames in the batch is logged.

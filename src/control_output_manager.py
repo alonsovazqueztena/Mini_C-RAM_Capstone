@@ -1,14 +1,15 @@
 # Alonso Vazquez Tena
 # STG-452: Capstone Project II
-# February 3, 2025
+# February 21, 2025
 # I used source code from the following 
 # website to complete this assignment:
 # https://chatgpt.com/share/67a05526-d4d8-800e-8e0d-67b03ca451a8
 # (used as starter code for basic functionality).
 
 
-# This class is largely incomplete. 
+# This class is incomplete. 
 # This is a placeholder for the ControlOutputManager class.
+# Code for the system integration will be handled here.
 
 # This class is responsible for managing the control outputs.
 class ControlOutputManager:

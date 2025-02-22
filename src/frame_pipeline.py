@@ -1,6 +1,6 @@
 # Alonso Vazquez Tena
 # STG-452: Capstone Project II
-# February 3, 2025
+# February 21, 2025
 # I used source code from the following 
 # website to complete this assignment:
 # https://chatgpt.com/share/67a17189-ca30-800e-858d-aac289e6cb56
@@ -22,12 +22,12 @@ from detection_processor import DetectionProcessor
 from frame_processor import FrameProcessor
 from tracking_system import TrackingSystem
 from video_stream_manager import VideoStreamManager
-from yolo_model_interface import YOLOModelInterface
+from ai_model_interface import AIModelInterface
 
 
 # This class serves as a frame pipeline that 
 # captures frames from a video stream,
-# processes them, runs YOLO + detection filtering, 
+# processes them, runs AI + detection filtering, 
 # then tracks objects over time.
 class FramePipeline:
     """A pipeline that captures frames from a video stream, processes them, 
@@ -41,7 +41,7 @@ class FramePipeline:
         frame_height=1080,
         target_width=1920,
         target_height=1080,
-        model_path="yolo_epoch_100.pt",
+        model_path="drone_detector_ai.pt",
         confidence_threshold=0.5,
         detection_processor=None,
         tracking_system=None
@@ -54,7 +54,7 @@ class FramePipeline:
         frame_height -- height of the video frame,
         target_width -- target width for a preprocessed frame,
         target_height -- target height for a preprocessed frame,
-        model_path -- path to the YOLO model file,
+        model_path -- path to the AI model file,
         confidence_threshold -- minimum confidence score for detections,
         detection_processor -- instance of DetectionProcessor 
         to filter detections,
@@ -73,8 +73,8 @@ class FramePipeline:
             target_height=target_height
         )
 
-        # Set up the YOLO model interface.
-        self.yolo_model_interface = YOLOModelInterface(
+        # Set up the AI model interface.
+        self.ai_model_interface = AIModelInterface(
             model_path=model_path,
             confidence_threshold=confidence_threshold
         )
@@ -99,15 +99,13 @@ class FramePipeline:
             detections):
         """Draw bounding boxes and centroids on the frame."""
 
-        # Each detection is iterated over. Their bounding box,
-        # confidence, and class ID are extracted.
+        # Each detection is iterated over. Their bounding box
+        # and confidence are extracted.
         for det in detections:
             bbox = det[
                 "bbox"]
             confidence = det[
                 "confidence"]
-            class_id = det[
-                "class_id"]
             x_min, y_min, x_max, y_max = map(
                 int, bbox)
 
@@ -117,24 +115,31 @@ class FramePipeline:
                 (x_max, y_max), (0, 255, 0), 2
                 )
 
-             # Prepare the label text.
+             # The label is prepared with the confidence.
             label = f"drone {confidence:.2f}"
             font = cv.FONT_HERSHEY_TRIPLEX
             font_scale = 2
             thickness = 4
 
-            # Get the size of the text box and the baseline.
-            (text_width, text_height), baseline = cv.getTextSize(label, font, font_scale, thickness)
-            margin = 5
+            # We get the size of the text box and the baseline for
+            # the background.
 
-            # Draw a filled rectangle (black) as background for the label.
+            # A black background is drawn as background for the label.
+            (text_width, text_height), baseline = cv.getTextSize(
+                label, font, 
+                font_scale, thickness)
+            margin = 5
             cv.rectangle(frame,
                 (x_min, y_min - text_height - baseline - margin),
                 (x_min + text_width, y_min),
                 (0, 0, 0), -1)
 
-            # Draw the text (green) on top of the rectangle.
-            cv.putText(frame, label, (x_min, y_min - margin), font, font_scale, (0, 255, 0), thickness)
+            # The text box is drawn in front of the rectangle.
+            cv.putText(frame, label, 
+                       (x_min, y_min - margin), 
+                       font, font_scale, 
+                       (0, 255, 0), thickness
+                       )
             
             # This draws the centroid, if present.
             if "centroid" in det:
@@ -152,9 +157,9 @@ class FramePipeline:
         """Draws tracked object IDs and centroids."""
 
         # Each tracked object is iterated over.
-        for object_id, detection in tracked_objects.items():
+        for detection in tracked_objects.items():
 
-            # Each detection is to have a boundary box, centroid, class_id, etc.
+            # Each detection is to have a boundary box and centroid.
             bbox = detection[
                 "bbox"]
             x_min, y_min, x_max, y_max = map(
@@ -164,14 +169,8 @@ class FramePipeline:
 
             # This draws bounding box in red for tracking.
             cv.rectangle(frame, (x_min, y_min), 
-                         (x_max, y_max), (255, 0, 0), 2
+                         (x_max, y_max), (0, 0, 255), 2
                          )
-
-            # This puts the text with the tracker ID.
-            # cv.putText(
-            #    frame, f"Drone {object_id}", (x_min, y_min - 10),
-            #    cv.FONT_HERSHEY_TRIPLEX, 2, (255, 0, 0), 4
-            #    )
 
             # This draws the centroid.
             cv.circle(frame, (int(cx), int(cy)), 
@@ -181,8 +180,8 @@ class FramePipeline:
     # This method runs the frame pipeline.
     def run(
             self):
-        """Captures frames, runs preprocessing + YOLO + detection processing,
-        then updates the tracking system and displays both YOLO detections
+        """Captures frames, runs preprocessing + AI + detection processing,
+        then updates the tracking system and displays both AI detections
         and tracked objects in real time."""
 
         try:
@@ -192,8 +191,14 @@ class FramePipeline:
                     "Starting the pipeline with tracking..."
                     )
                 
-                cv.namedWindow("Frame with Tracking", cv.WINDOW_NORMAL)
-                cv.resizeWindow("Frame with Tracking", 800, 600)  # Adjust width and height as needed
+                # The window view to see the program execution
+                # is through here.
+                cv.namedWindow(
+                    "Mini C-RAM View", 
+                    cv.WINDOW_NORMAL)
+                cv.resizeWindow(
+                    "Mini C-RAM View", 
+                    800, 600)
 
                 # Run as long as frames are available.
                 while True:
@@ -209,7 +214,7 @@ class FramePipeline:
                         frame)
 
                     # This predicts detections using the YOLO model.
-                    raw_detections = self.yolo_model_interface.predict(
+                    raw_detections = self.ai_model_interface.predict(
                         processed_frame[0])
                     
                     # This filters detections and adds centroids.
@@ -232,7 +237,7 @@ class FramePipeline:
 
                     # This displays the frame with tracking.
                     cv.imshow(
-                        "Frame with Tracking", frame
+                        "Tracked Frame", frame
                         )
 
                     # This handles the button 'q' to quit.
@@ -244,6 +249,7 @@ class FramePipeline:
             logging.error(
                 f"Error in FramePipeline run: {e}"
                 )
+            
         # This ensures that resources are released and windows are closed.
         finally:
             logging.info(

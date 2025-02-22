@@ -1,13 +1,13 @@
 # Alonso Vazquez Tena
 # STG-452: Capstone Project II
-# February 3, 2025
+# February 21, 2025
 # This is my own code.
 
 # We import the YOLO model's class here.
 from ultralytics import YOLO
 
 # We create an instance of the trained YOLO model here.
-model = YOLO("..\src\yolo_epoch_100.pt")
+model = YOLO("..\src\drone_detector_ai.pt")
 
 # We use the model to infer on a test image here.
 

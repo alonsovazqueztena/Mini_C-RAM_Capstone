@@ -1,6 +1,6 @@
 # Alonso Vazquez Tena
 # STG-452: Capstone Project II
-# February 3, 2025
+# February 21, 2025
 # I used source code from the following 
 # website to complete this assignment:
 # https://chatgpt.com/share/67a17189-ca30-800e-858d-aac289e6cb56
@@ -23,7 +23,7 @@ from frame_pipeline import FramePipeline
 from frame_processor import FrameProcessor
 from tracking_system import TrackingSystem
 from video_stream_manager import VideoStreamManager
-from yolo_model_interface import YOLOModelInterface
+from ai_model_interface import AIModelInterface
 
 # This method tests the video stream manager 
 # by attempting to capture a single frame.
@@ -104,57 +104,57 @@ def test_frame_processor():
             f"FrameProcessor test failed: {e}"
             )
 
-# This method tests the YOLO model interface by 
+# This method tests the AI model interface by 
 # running inference on a sample image.
-def test_yolo_model_interface():
-    """Test the YOLOModelInterface by 
+def test_ai_model_interface():
+    """Test the AIModelInterface by 
     running inference on a sample image."""
 
-    logging.info("Testing YOLOModelInterface...")
+    logging.info("Testing AIModelInterface...")
     try:
-        # This initializes the YOLO model interface.
-        yolo_interface = YOLOModelInterface(
-            model_path="yolo_epoch_100.pt", 
+        # This initializes the AI model interface.
+        ai_interface = AIModelInterface(
+            model_path="drone_detector_ai.pt", 
             confidence_threshold=0.5)
 
-        # A test image is loaded for YOLO.
+        # A test image is loaded for AI.
         test_img = cv.imread(
             "../images/drone_mock_test_1.jpg")
         
         # If the test image is empty or cannot be found, an error is raised.
         if test_img is None:
             raise ValueError(
-                "Failed to load test image for YOLO. Provide a valid image path."
+                "Failed to load test image for AI. Provide a valid image path."
                 )
 
         # This runs inference on the test image.
-        detections = yolo_interface.predict(
+        detections = ai_interface.predict(
             test_img)
         
         # A log is created with the raw YOLO detections.
         logging.info(
-            f"Raw YOLO detections: {detections}"
+            f"Raw AI detections: {detections}"
             )
         
     # If an exception is raised, the error is logged.
     except Exception as e:
         logging.error(
-            f"YOLOModelInterface test failed: {e}"
+            f"AIModelInterface test failed: {e}"
             )
 
 # This method tests the detection processor by 
-# running YOLO on a sample image
+# running AI on a sample image
 # and then processing the raw detections.
 def test_detection_processor():
-    """ Test the DetectionProcessor by running YOLO on a sample image
+    """ Test the DetectionProcessor by running AI on a sample image
     and then processing the raw detections."""
 
     logging.info("Testing DetectionProcessor...")
     try:
 
         # The YOLO model interface is initialized.
-        yolo_interface = YOLOModelInterface(
-            model_path="yolo_epoch_100.pt", 
+        ai_interface = AIModelInterface(
+            model_path="drone_detector_ai.pt", 
             confidence_threshold=0.5)
 
         # The test image is loaded for YOLO.
@@ -164,16 +164,16 @@ def test_detection_processor():
         # If the test image is empty or cannot be found, an error is raised.
         if test_img is None:
             raise ValueError(
-                "Failed to load test image for YOLO. Provide a valid image path."
+                "Failed to load test image for AI. Provide a valid image path."
                 )
 
         # This runs inference on the test image.
-        raw_detections = yolo_interface.predict(
+        raw_detections = ai_interface.predict(
             test_img)
         
         # A log is created with the raw YOLO detections.
         logging.info(
-            f"Raw detections from YOLO: {raw_detections}"
+            f"Raw detections from AI: {raw_detections}"
             )
 
         # The detection processor is initialized.
@@ -200,8 +200,8 @@ def test_detection_processor():
 # processing each frame, and running YOLO detection.
 def test_frame_pipeline():
     """Test the FramePipeline by 
-    running a continuous video stream at 640x480,
-    processing each frame, and running YOLO detection."""
+    running a continuous video stream at full HD,
+    processing each frame, and running AI detection."""
 
     logging.info(
         "Testing FramePipeline..."
@@ -215,7 +215,7 @@ def test_frame_pipeline():
             frame_height=1080, 
             target_width=1920, 
             target_height=1080,
-            model_path="yolo_epoch_100.pt",
+            model_path="drone_detector_ai.pt",
             confidence_threshold=0.5
         )
 
@@ -232,11 +232,11 @@ def test_frame_pipeline():
             )
 
 # This method tests the frame pipeline by 
-# running a continuous video stream at 640x480,
+# running a continuous video stream at full HD,
 # and includes detection and tracking.
 def test_frame_pipeline_with_tracking():
     """Test the FramePipeline by running a 
-    continuous video stream at 640x480,
+    continuous video stream at full HD,
     including detection and tracking."""
 
     logging.info(
@@ -255,7 +255,7 @@ def test_frame_pipeline_with_tracking():
             frame_height=1080, 
             target_width=1920, 
             target_height=1080,
-            model_path="yolo_epoch_100.pt",
+            model_path="drone_detector_ai.pt",
             confidence_threshold=0.5,
             detection_processor=None,
             tracking_system=tracker
@@ -292,14 +292,14 @@ def main():
     # This tests the FrameProcessor (image preprocessing).
     test_frame_processor()
 
-    # This tests the YOLOModelInterface (model loading and inference).
-    test_yolo_model_interface()
+    # This tests the AIModelInterface (model loading and inference).
+    test_ai_model_interface()
 
     # This tests the DetectionProcessor (filter & add centroids).
     test_detection_processor()
 
     # This tests the FramePipeline 
-    # (real-time video + YOLO detection + 640x480).
+    # (real-time video + AI detection + full HD).
     test_frame_pipeline()
 
     # This tests the FramePipeline with tracking 
