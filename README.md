@@ -1,48 +1,75 @@
-# Mini C-RAM Counter-Drone System
+# Mini C-RAM System
 
 ## Table of Contents
 - [Project Overview](#project-overview)
 - [Key Features](#key-features)
 - [System Architecture](#system-architecture)
 - [Installation](#installation)
-- [Configuration](#configuration)
 - [Usage](#usage)
 - [Hardware Setup](#hardware-setup)
-- [Simulation Mode](#simulation-mode)
 - [Testing](#testing)
 - [Contributing](#contributing)
 - [License](#license)
+- [Maintainers](#maintainers)
+- [Citations and Acknowledgements](#citations-and-acknowledgements)
+
 
 ## Project Overview
-A real-time counter-drone system using computer vision and object tracking. Detects UAVs in video streams and simulates countermeasures (laser activation). Designed for Raspberry Pi with optional hardware integration.
+A real-time counter-drone system using computer vision and object tracking. Detects UAVs in video streams and simulates countermeasures (laser activation).
 
 ## Key Features
-- Real-time object detection using YOLOv5
+- Real-time object detection using YOLOv11n (or any other compatible AI model)
 - Centroid-based object tracking
-- Frame processing pipeline (640x480 @ 15FPS)
+- Frame processing pipeline (1920x1080 @ 120FPS)
 - Hardware control interface for laser systems
-- Simulation mode for development without hardware
 - Configurable detection thresholds and tracking parameters
 
 ## System Architecture
 ```
 .
-├── control_output_manager.py   # Laser control interface (GPIO/PWM)
-├── detection_processor.py      # Filters/processes YOLO detections
-├── frame_pipeline.py           # Main processing workflow
-├── frame_processor.py          # Frame resizing/normalization
-├── main.py                     # System entry point
-├── tracking_system.py          # Object tracking implementation
-├── video_stream_manager.py     # Camera/stream input handling
-├── yolo_model_interface.py     # YOLO model wrapper
-└── config.yaml                 # System configuration
+├── images
+│   ├── drone_mock_test_1.jpg         # Sample mock test image
+│   ├── drone_mock_test_2.jpg         # Sample mock test image
+│   ├── drone_mock_test_3.jpg         # Sample mock test image
+│   ├── drone_real_test_1.jpg         # Sample real test image
+│   ├── drone_real_test_2.jpg         # Sample real test image
+│   ├── drone_real_test_3.jpg         # Sample real test image
+│   ├── drone_real_test_4.jpg         # Sample real test image
+│   ├── drone_real_test_5.jpg         # Sample real test image
+│   ├── drone_real_test_6.jpg         # Sample real test image
+│   ├── drone_real_test_7.jpg         # Sample real test image
+│   ├── drone_real_test_8.jpg         # Sample real test image
+│   ├── drone_real_test_9.jpg         # Sample real test image
+│   ├── drone_real_test_10.jpg        # Sample real test image
+│   ├── drone_real_test_11.jpg        # Sample real test image
+│   ├── drone_real_test_12.jpg        # Sample real test image
+│   ├── drone_real_test_13.jpg        # Sample real test image
+│   ├── drone_real_test_14.jpg        # Sample real test image
+│   └── drone_real_test_15.jpg        # Sample real test image
+├── src
+│   ├── ai_model_interface.py         # AI model wrapper
+│   ├── control_output_manager.py     # Laser control interface (GPIO/PWM)
+│   ├── detection_processor.py        # Filters/processes AI detections
+│   ├── drone_detector_ai.pt          # YOLOv11n drone detector model
+│   ├── frame_pipeline.py             # Main processing workflow
+│   ├── frame_processor.py            # Frame resizing/normalization
+│   ├── main.py                       # Program execution code
+│   ├── tracking_system.py            # Object tracking implementation
+│   └── video_stream_manager.py       # Camera/stream input handling
+└── test
+    ├── test_ai_model_interface.py    # Unit test for AI model interface
+    ├── test_ai.py                    # Detection test for AI model
+    ├── test_detection_processor.py   # Unit test for detection processor
+    ├── test_frame_processor.py       # Unit test for frame processor
+    ├── test_tracking_system.py       # Unit test for tracking system
+    └── test_video_stream_manager.py  # Unit test for video stream manager
 ```
 
 ## Installation
 
 ### Prerequisites
-- Python 3.8+
-- Raspberry Pi OS (Bullseye) or Ubuntu 20.04
+- Python 3.11.1+
+- Windows 11 or Ubuntu 20.04
 - USB Webcam or IP Camera
 
 ```bash
@@ -51,42 +78,19 @@ git clone https://github.com/alonsovazqueztena/Mini_C-RAM_Capstone.git
 cd Mini_C-RAM_Capstone
 
 # Create virtual environment
-python -m venv venv
-source venv/bin/activate  # Linux/MacOS
-# venv\Scripts\activate  # Windows
+python -m venv env
+source env/bin/activate      # Linux/MacOS
+source env/Scripts/activate  # Windows
 
 # Install dependencies
 pip install -r requirements.txt
-```
-
-## Configuration
-Edit `config.yaml`:
-
-```yaml
-camera:
-  device: 0                # /dev/video0
-  resolution: [1920, 1080] # Input resolution
-  fps: 30                  # Target FPS
-
-detection:
-  model: yolo_epoch_100.pt
-  confidence: 0.65       # Minimum detection confidence
-  classes: [0]           # COCO class IDs (0: person, etc.)
-
-tracking:
-  max_disappeared: 30    # Frames to keep lost objects
-  max_distance: 50       # Pixel distance for ID matching
-
-hardware:
-  laser_pin: 18          # GPIO pin for laser control
-  safe_mode: true        # Disable physical outputs
 ```
 
 ## Usage
 
 ### Basic Operation
 ```bash
-# Start system with default config
+# Execute the program using the source code (must be in src folder)
 python main.py
 ```
 
@@ -97,49 +101,25 @@ python main.py
 | p   | Pause processing       |
 | d   | Toggle debug overlay   |
 
-### Advanced Modes
-```bash
-# Use test image instead of camera
-python main.py --simulate
-
-# Specify custom configuration
-python main.py --config custom_config.yaml
-```
-
 ## Hardware Setup
-
-### Hardware Diagram
-
 **Camera Connection**
 - **USB Webcam**: Plug into available USB port
-- **IP Camera**: Set RTSP URL in `config.yaml`
+- **IP Camera**: Set RTSP URL
 
 **Laser Control**
 - Connect laser module to GPIO 18
 - Power: 5V PWM compatible laser diode
 
-**Safety Measures**
-- Always enable `safe_mode` during development
-- Use current-limiting resistor for laser
-
-## Simulation Mode
-Test without hardware using stored images:
-
-```python
-# In video_stream_manager.py
-SIMULATION_MODE = True
-IMAGE_PATH = "drone_test.jpg"
-```
-
 ## Testing
-Run validation tests:
+Run validation tests in test folder:
 
 ```bash
-python -m unittest discover -s tests/
+# Run all unit tests of the program.
+pytest
 
-# Individual component tests
-python test.py --test detection
-python test.py --test tracking
+# Run an AI model detection test of image.
+
+python test_ai.py   # Results in runs folder
 ```
 
 ## Contributing
@@ -168,7 +148,7 @@ MIT License - See LICENSE for details
 **Mentor**: Ryan Woodward  
 *University of Advanced Robotics, 2023*
 
-## Citations & Acknowledgements
+## Citations and Acknowledgements
 **YOLOv11n**  
 > Glenn Jocher and Jing Qiu.  
 > *Ultralytics YOLO11, version 11.0.0 (2024)*  

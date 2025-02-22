@@ -1,16 +1,16 @@
 # Alonso Vazquez Tena
 # STG-452: Capstone Project II
-# February 3, 2025
+# February 22, 2025
 # I used source code from the following 
 # website to complete this assignment:
 # https://chatgpt.com/share/67a05526-d4d8-800e-8e0d-67b03ca451a8
 # (used as starter code for basic functionality).
 
 
-# This class processes raw YOLO detections by 
+# This class processes raw AI detections by 
 # filtering based on confidence or class.
 class DetectionProcessor:
-    """Processes raw YOLO detections by filtering 
+    """Processes raw AI detections by filtering 
     based on confidence or class and adding additional 
     metadata like centroids."""
 
