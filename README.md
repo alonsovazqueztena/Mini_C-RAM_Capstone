@@ -17,6 +17,8 @@
 ## Project Overview
 A real-time counter-drone system using computer vision and object tracking. Detects UAVs in video streams and simulates countermeasures (laser activation).
 
+[Object Detection Demo Video](https://youtu.be/fowJt3A_c3s)
+
 ## Key Features
 - Real-time object detection using YOLOv11n (or any other compatible AI model)
 - Centroid-based object tracking
