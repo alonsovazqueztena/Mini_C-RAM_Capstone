@@ -110,7 +110,7 @@ class FramePipeline:
                 int, bbox)
 
             # The label is prepared with the confidence.
-            label = f"drone {confidence:.2f}"
+            label = f"drone {confidence:.3f}"
             font = cv.FONT_HERSHEY_TRIPLEX
             font_scale = 2
             thickness = 4
