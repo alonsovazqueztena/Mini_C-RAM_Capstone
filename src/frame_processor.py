@@ -84,13 +84,18 @@ class FrameProcessor:
         logging.info(
             f"Resized frame to: {self.target_width} by {self.target_height}"
             )
+        
+        # Apply a Gaussian blur filter.
+        # The kernel size (7, 7) can be adjusted as needed.
+        blurred_frame = cv.GaussianBlur(resized_frame, (7, 7), 0)
+        logging.info("Applied Gaussian blur filter with kernel size (7, 7)")
 
         # This adds a batch dimension as the AI model expects 4D input: 
         # batch, width, height, and channels.
 
         # We are looking at one frame at a time for the batch.
         preprocessed_frame = np.expand_dims(
-            resized_frame, axis=0)
+            blurred_frame, axis=0)
         logging.info(
             f"Added batch dimension. Preprocessed frame shape: {preprocessed_frame.shape}"
             )

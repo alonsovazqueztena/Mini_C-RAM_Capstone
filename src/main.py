@@ -37,7 +37,7 @@ def test_video_stream_manager():
     try:
         # This initializes the video stream manager.
         video_stream = VideoStreamManager(
-            capture_device=0, frame_width=1920, 
+            capture_device=1, frame_width=1920, 
             frame_height=1080)
         
         # This captures a single frame.
@@ -210,7 +210,7 @@ def test_frame_pipeline():
 
         # The frame pipeline is initialized.
         pipeline = FramePipeline(
-            capture_device=0, 
+            capture_device=1, 
             frame_width=1920, 
             frame_height=1080, 
             target_width=1920, 
@@ -250,7 +250,7 @@ def test_frame_pipeline_with_tracking():
 
         # Initialize the FramePipeline and pass the tracker.
         pipeline = FramePipeline(
-            capture_device=0, 
+            capture_device=1, 
             frame_width=1920, 
             frame_height=1080, 
             target_width=1920, 

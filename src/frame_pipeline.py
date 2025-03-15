@@ -36,7 +36,7 @@ class FramePipeline:
     # This method initializes the frame pipeline.
     def __init__(
         self,
-        capture_device=0,
+        capture_device=1,
         frame_width=1920,
         frame_height=1080,
         target_width=1920,
