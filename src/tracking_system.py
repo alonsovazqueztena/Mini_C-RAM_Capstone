@@ -16,6 +16,8 @@ import numpy as np
 # This import is used to calculate the distance between centroids.
 from scipy.spatial import distance as dist
 
+from scipy.optimize import linear_sum_assignment
+
 
 # This class serves as a tracking system for multiple objects.
 class TrackingSystem:
@@ -24,7 +26,8 @@ class TrackingSystem:
     # This method initializes the tracking system.
     def __init__(
             self, max_disappeared=50, 
-            max_distance=50):
+            max_distance=50,
+            smoothing_alpha=0.5):
         """Initializes the tracking system.
         
         Keyword arguments:
@@ -42,12 +45,16 @@ class TrackingSystem:
         self.disappeared = OrderedDict()
         self.max_disappeared = max_disappeared
         self.max_distance = max_distance
+        self.smoothing_alpha = smoothing_alpha
 
     # This method registers a new object in the tracking system.
     def register(
             self, detection):
         """Register a new object (detection) in the tracking system."""
         
+        detection['trajectory'] = [detection['centroid']]
+        detection['velocity'] = (0, 0)
+
         # The new object is stored in the objects dictionary.
         self.objects[self.next_object_id] = detection
         self.disappeared[self.next_object_id] = 0
@@ -88,24 +95,20 @@ class TrackingSystem:
             # Prepare to match current tracked objects to new detections via centroid distance.
             object_ids = list(
                 self.objects.keys())
-            object_centroids = [
-                self.objects[obj_id]["centroid"] for obj_id in object_ids]
-            object_centroids = np.array(
-                object_centroids)
+            object_centroids = np.array([
+                self.objects[obj_id]["centroid"] for obj_id in object_ids])
 
             # Compute distance matrix between tracked centroids and new detection centroids.
             distance_matrix = dist.cdist(
                 object_centroids, input_centroids)
 
-            # For each tracked object, find the closest new detection in ascending order.
-            rows = distance_matrix.min(axis=1).argsort()
-            cols = distance_matrix.argmin(axis=1)[rows]
+            row_indices, col_indices = linear_sum_assignment(distance_matrix)
 
             # Keep track of matched rows & columns to avoid double assignment.
             used_rows, used_cols = set(), set()
 
             for row, col in zip(
-                    rows, cols):
+                    row_indices, col_indices):
                 
                 # If we’ve already matched this row or column, skip.
                 if row in used_rows or col in used_cols:
@@ -117,6 +120,34 @@ class TrackingSystem:
 
                 # Update the tracked object with the new detection data.
                 object_id = object_ids[row]
+                prev_centroid = self.objects[object_id]["centroid"]
+                new_centroid = detections[col]["centroid"]
+
+                smoothed_centroid = (
+                    self.smoothing_alpha * new_centroid[0] + (1 - self.smoothing_alpha) * prev_centroid[0],
+                    self.smoothing_alpha * new_centroid[1] + (1 - self.smoothing_alpha) * prev_centroid[1]
+                )
+
+                raw_velocity = (
+                    smoothed_centroid[0] - prev_centroid[0],
+                    smoothed_centroid[1] - prev_centroid[1]
+                )
+
+                prev_velocity = self.objects[object_id]["velocity"]
+
+                smoothed_velocity = (
+                    self.smoothing_alpha * raw_velocity[0] + (1 - self.smoothing_alpha) * prev_velocity[0],
+                    self.smoothing_alpha * raw_velocity[1] + (1 - self.smoothing_alpha) * prev_velocity[1]
+                )
+                
+                detections[col]["velocity"] = smoothed_velocity
+                
+                trajectory = self.objects[object_id].get("trajectory", [])
+                trajectory.append(smoothed_centroid)
+                detections[col]["trajectory"] = trajectory
+
+                detections[col]["centroid"] = smoothed_centroid
+                
                 self.objects[object_id] = detections[col]
                 self.disappeared[object_id] = 0
 
@@ -124,7 +155,7 @@ class TrackingSystem:
                 used_cols.add(col)
 
             # For any unmatched tracked objects, increment disappearance count.
-            unused_rows = set(range(0, distance_matrix.shape[0])) - used_rows
+            unused_rows = set(range(0, distance_matrix.shape[0])).difference(used_rows)
             for row in unused_rows:
                 object_id = object_ids[
                     row]
@@ -133,7 +164,7 @@ class TrackingSystem:
                     self.deregister(object_id)
 
             # For any unmatched detections, register them as new objects.
-            unused_cols = set(range(0, distance_matrix.shape[1])) - used_cols
+            unused_cols = set(range(0, distance_matrix.shape[1])).difference(used_cols)
             for col in unused_cols:
                 self.register(
                     detections[col])

@@ -21,15 +21,14 @@ class DetectionProcessor:
 
         Keyword arguments:
         target_classes -- list of class IDs to keep. 
-        confidence_threshold -- minimum confidence 
-        threshold to keep a detection.
         """
         if target_classes is None:
             target_classes = ["0", "drone", "quadricopter", "Drone"]
         
         self.target_classes = [cls.lower() for cls in target_classes]
 
-    def process_detections(self, detections):
+    def process_detections(
+            self, detections):
         """ Processes raw detections from the YOLO model.
 
         Keyword arguments:
