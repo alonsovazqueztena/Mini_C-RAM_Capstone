@@ -178,8 +178,7 @@ def test_detection_processor():
 
         # The detection processor is initialized.
         detection_processor = DetectionProcessor(
-            target_classes=None,
-            confidence_threshold=0.5
+            target_classes=None
         )
 
         # Detections are processed by the detection processor.

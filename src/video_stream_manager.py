@@ -34,6 +34,9 @@ class VideoStreamManager:
     # Adjust the capture device index accordingly to
     # to your device as well as the resolution of
     # your camera.
+
+    # For now, I am testing this using a phone webcam
+    # (this is why the capture device index is 1).
     def __init__(
             self, capture_device=1, 
             frame_width=1920, frame_height=1080):

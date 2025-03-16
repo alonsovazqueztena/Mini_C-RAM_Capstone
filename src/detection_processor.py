@@ -16,8 +16,7 @@ class DetectionProcessor:
 
     # This method initializes the detection processor.
     def __init__(
-            self, target_classes=None, 
-            confidence_threshold=0.5):
+            self, target_classes=None):
         """ Initializes the detection processor.
 
         Keyword arguments:
@@ -25,8 +24,10 @@ class DetectionProcessor:
         confidence_threshold -- minimum confidence 
         threshold to keep a detection.
         """
-        self.target_classes = target_classes if target_classes is not None else []
-        self.confidence_threshold = confidence_threshold
+        if target_classes is None:
+            target_classes = ["0", "drone", "quadricopter", "Drone"]
+        
+        self.target_classes = [cls.lower() for cls in target_classes]
 
     def process_detections(self, detections):
         """ Processes raw detections from the YOLO model.
@@ -51,13 +52,15 @@ class DetectionProcessor:
             class_id = detection[
                 "class_id"
                 ]
+            label = detection[
+                "label"
+                ].lower()
 
             # The bounding box is unpacked into its components.
             x_min, y_min, x_max, y_max = bbox
 
             # This filters by confidence and class IDs.
-            if confidence >= self.confidence_threshold and \
-               (not self.target_classes or class_id in self.target_classes):
+            if not self.target_classes or label in self.target_classes:
 
                 # The centroid of the bounding box is calculated.
                 x_center = (x_min + x_max) / 2
@@ -68,7 +71,8 @@ class DetectionProcessor:
                     "bbox": bbox,
                     "confidence": confidence,
                     "class_id": class_id,
-                    "centroid": (x_center, y_center),
+                    "label": label,
+                    "centroid": (x_center, y_center)
                 }
 
                 # The processed detection is appended to the filtered detections.

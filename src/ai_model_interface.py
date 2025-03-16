@@ -69,7 +69,8 @@ class AIModelInterface:
             raise
 
     # This method runs inference on a single frame.
-    def predict(self, frame):
+    def predict(
+            self, frame):
         """Runs inference on a single frame and extracts detections."""
 
         try:
@@ -83,12 +84,6 @@ class AIModelInterface:
 
             # This processes the results by adding the detection to a list.
             detections = []
-
-            # These are all the allowed class labels.
-            # All are considered drone labels.
-            allowed_labels = {
-                "0", "drone", 
-                "quadricopter"}
 
             for result in results:
 
@@ -105,9 +100,9 @@ class AIModelInterface:
                         label = self.model.names[class_id]
 
                         # If a detection is above the 
-                        # confidence threshold and is a drone label,
+                        # confidence threshold,
                         # it is added to the list of detections.
-                        if confidence >= self.confidence_threshold and label.lower() in allowed_labels:
+                        if confidence >= self.confidence_threshold:
                             detections.append({
                                 "bbox": [x_min, y_min, x_max, y_max],
                                 "confidence": confidence,

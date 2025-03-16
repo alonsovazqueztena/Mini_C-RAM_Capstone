@@ -1,6 +1,6 @@
 # Alonso Vazquez Tena
 # STG-452: Capstone Project II
-# February 21, 2025
+# March 15, 2025
 # I used source code from the following 
 # website to complete this assignment:
 # https://chatgpt.com/share/67a05526-d4d8-800e-8e0d-67b03ca451a8
@@ -85,8 +85,13 @@ class FrameProcessor:
             f"Resized frame to: {self.target_width} by {self.target_height}"
             )
 
-        blurred_frame = cv.medianBlur(resized_frame, 5)
-        logging.info("Applied median blur filter with kernel size 5")
+        # This applies a median blur filter to the resized frame,
+        # allowing for improved drone detection due to a noise reduction.
+        blurred_frame = cv.medianBlur(
+            resized_frame, 3)
+        logging.info(
+            "Applied median blur filter with kernel size 3"
+            )
 
         # This adds a batch dimension as the AI model expects 4D input: 
         # batch, width, height, and channels.

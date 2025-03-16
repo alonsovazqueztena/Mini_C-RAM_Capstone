@@ -82,8 +82,7 @@ class FramePipeline:
         # Use a provided detection processor or create 
         # one with default parameters.
         self.detection_processor = detection_processor or DetectionProcessor(
-            target_classes=None, 
-            confidence_threshold=confidence_threshold
+            target_classes=None
         )
 
         # Use a provided tracking system or create one 
