@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Workspace>
+<Workspace xmlns="http://www.qlcplus.org/Workspace" CurrentWindow="InputOutputManager">
+ <Creator>
+  <Name>Q Light Controller Plus</Name>
+  <Version>4.13.1</Version>
+  <Author>DanielSaravia</Author>
+ </Creator>
+ <Engine>
+  <InputOutputMap>
+   <BeatGenerator BeatType="Disabled" BPM="0"/>
+   <Universe Name="Universe 1" ID="0">
+    <Output Plugin="DMX USB" UID="FT232R USB UART (S/N: BG00D2EJ)" Line="0">
+     <PluginParameters UniverseChannels="11"/>
+    </Output>
+   </Universe>
+   <Universe Name="Universe 2" ID="1">
+    <Input Plugin="E1.31" UID="172.17.0.1" Line="1"/>
+   </Universe>
+   <Universe Name="Universe 3" ID="2"/>
+   <Universe Name="Universe 4" ID="3"/>
+  </InputOutputMap>
+  <Fixture>
+   <Manufacturer>UKing</Manufacturer>
+   <Model>LED Spot Moving Head 100W</Model>
+   <Mode>11 Channel</Mode>
+   <ID>0</ID>
+   <Name>LED Spot Moving Head 100W</Name>
+   <Universe>0</Universe>
+   <Address>0</Address>
+   <Channels>11</Channels>
+  </Fixture>
+ </Engine>
+ <VirtualConsole>
+  <Frame Caption="">
+   <Appearance>
+    <FrameStyle>None</FrameStyle>
+    <ForegroundColor>Default</ForegroundColor>
+    <BackgroundColor>Default</BackgroundColor>
+    <BackgroundImage>None</BackgroundImage>
+    <Font>Default</Font>
+   </Appearance>
+  </Frame>
+  <Properties>
+   <Size Width="1920" Height="1080"/>
+   <GrandMaster ChannelMode="Intensity" ValueMode="Reduce" SliderMode="Normal"/>
+  </Properties>
+ </VirtualConsole>
+ <SimpleDesk>
+  <Engine/>
+ </SimpleDesk>
+</Workspace>
