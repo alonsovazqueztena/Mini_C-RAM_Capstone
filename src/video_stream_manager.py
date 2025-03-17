@@ -16,6 +16,10 @@ import logging
 # In this case, OpenCV will be used.
 import cv2 as cv
 
+import threading
+import queue
+import time
+
 
 # This class serves as code for a video stream manager.
 
@@ -39,7 +43,8 @@ class VideoStreamManager:
     # (this is why the capture device index is 1).
     def __init__(
             self, capture_device=1, 
-            frame_width=1920, frame_height=1080):
+            frame_width=1920, frame_height=1080,
+            max_queue_size=10):
         """Initialize the video stream manager.
         
         Keyword arguments:
@@ -52,6 +57,10 @@ class VideoStreamManager:
         self.frame_width = frame_width
         self.frame_height = frame_height
         self.capture = None
+
+        self.frame_queue = queue.Queue(maxsize=max_queue_size)
+        self.stopped = False
+        self.grabber_thread = None
 
         # The logging is configured here. 
         
@@ -78,12 +87,10 @@ class VideoStreamManager:
             self.capture_device)
 
         # Captured frame width and height is set here.
-        self.capture.set(
-            cv.CAP_PROP_FRAME_WIDTH, self.frame_width
-            )
-        self.capture.set(
-            cv.CAP_PROP_FRAME_HEIGHT, self.frame_height
-            )
+        if not self.capture.set(cv.CAP_PROP_FRAME_WIDTH, self.frame_width):
+            logging.warning("Failed to set frame width.")
+        if not self.capture.set(cv.CAP_PROP_FRAME_HEIGHT, self.frame_height):
+            logging.warning("Failed to set frame height.")
 
         # Any hardware acceleration available on the 
         # device the code is running on is to be leveraged.
@@ -107,7 +114,29 @@ class VideoStreamManager:
             f"The video stream has been initialized with resolution "
             f"{self.frame_width} by {self.frame_height}."
             )
+        
+        self.stopped = False
+        self.grabber_thread = threading.Thread(target=self._frame_grabber, daemon=True)
+        self.grabber_thread.start()
 
+    def _frame_grabber(self):
+        while not self.stopped:
+            ret, frame = self.capture.read()
+            if not ret:
+                logging.error("Failed to capture a frame")
+                continue
+            try:
+                if self.frame_queue.full():
+                    try:
+                        self.frame_queue.get_nowait()
+                    except queue.Empty:
+                        pass
+                self.frame_queue.put(frame, block=False)
+            except queue.Full:
+                logging.warning("Frame queue is full, dropping frame")
+
+            time.sleep(0.001)
+            
     # This method gets a frame from the video stream and
     # returns it in the program.
     def get_frame(
@@ -124,35 +153,14 @@ class VideoStreamManager:
             raise RuntimeError(
                 "ERROR: The video stream cannot be initialized."
                 )
-
-        # A boolean condition is checked if the
-        # frame from the HDMI capture card can be received.
-        ret, frame = self.capture.read()
-
-        # If the frame cannot be captured, an error is 
-        # raised and output in a log.
-        if not ret:
-            logging.error(
-                "Failed to capture the frame."
-                )
-            raise RuntimeError(
-                "ERROR: The frames cannot be captured."
-            )
-
-        # If an invalid frame is received, output a warning 
-        # in a log.
-        if frame is None:
-            logging.warning(
-                "The captured frame is None (invalid)."
-                )
-            return None
-
-        # When a frame is successfully received, the height, width,
-        # and channels are logged. 
-        logging.info(
-            f"Captured frame of size: {frame.shape}"
-            )
-        return frame
+        
+        try:
+            frame = self.frame_queue.get(timeout=1.0)
+            logging.debug(f"Retrieved frame of size: {frame.shape}")
+            return frame
+        except queue.Empty:
+            logging.error("No frame available in the queue")
+            raise RuntimeError("ERROR: No frame available.")
 
     # This method releases the video stream resources upon
     # key from the user to terminate.
@@ -163,10 +171,13 @@ class VideoStreamManager:
         # If the HDMI capture card is opened and detected
         # (thus, a video stream exists), the video stream will end and
         # this will be output in a log.
+        self.stopped = True
+        if self.grabber_thread is not None:
+            self.grabber_thread.join(timeout=2.0)
         if self.capture and self.capture.isOpened():
             self.capture.release()
             logging.info(
-                "The video stream was released."
+                "The video stream has been released."
                 )
 
     # This is a simple enter method that only initializes the stream.
@@ -190,4 +201,6 @@ class VideoStreamManager:
         exc_value -- actual exception instance that occurred
         traceback -- contains stack trace where exception was raised
         """
+        if exc_type:
+            logging.error(f"Exception occurred: {exc_value}", exc_info=(exc_type, exc_value, traceback))
         self.release_stream()
