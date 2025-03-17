@@ -1,14 +1,14 @@
 # Alonso Vazquez Tena
 # STG-452: Capstone Project II
-# February 22, 2025
+# March 16, 2025
 # I used source code from the following 
 # website to complete this assignment:
 # https://chatgpt.com/share/67a05526-d4d8-800e-8e0d-67b03ca451a8
 # (used as starter code for basic functionality).
 
 # This project requires the usage of logs for the developer
-# to understand the conditions of the system, whether
-# an error has occurred or the execution of the class was a success.
+# to understand the conditions of the system if
+# an error has occurred.
 import logging
 
 # We are using a YOLOv11n model for object detection.
@@ -48,7 +48,7 @@ class AIModelInterface:
         # Basic info is put in, which includes the time, 
         # level name, and messages.
         logging.basicConfig(
-            level=logging.INFO, 
+            level=logging.WARNING, 
             format="%(asctime)s - %(levelname)s - %(message)s"
             )
 
@@ -59,9 +59,6 @@ class AIModelInterface:
         try:
             self.model = YOLO(
                 self.model_path)
-            logging.info(
-                f"AI model loaded successfully from {self.model_path}"
-                )
         except Exception as e:
             logging.error(
                 f"Failed to load AI model from {self.model_path}: {e}"
@@ -74,7 +71,6 @@ class AIModelInterface:
         """Runs inference on a single frame and extracts detections."""
 
         try:
-
             # This runs an inference on a frame.
 
             # The frame size must be 640 for the YOLOv11n model.
@@ -97,7 +93,8 @@ class AIModelInterface:
                         confidence = box.conf[0].item()
                         class_id = int(
                             box.cls[0].item())
-                        label = self.model.names[class_id]
+                        label = self.model.names[
+                            class_id]
 
                         # If a detection is above the 
                         # confidence threshold,
@@ -110,8 +107,6 @@ class AIModelInterface:
                                 "label": label
                             })
 
-            # This logs the detections.
-            logging.info(f"Detections: {detections}")
             return detections
 
         # Any errors that occur during prediction are logged.

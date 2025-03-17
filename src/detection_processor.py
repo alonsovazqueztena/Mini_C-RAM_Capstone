@@ -1,6 +1,6 @@
 # Alonso Vazquez Tena
 # STG-452: Capstone Project II
-# February 22, 2025
+# March 16, 2025
 # I used source code from the following 
 # website to complete this assignment:
 # https://chatgpt.com/share/67a05526-d4d8-800e-8e0d-67b03ca451a8
@@ -20,12 +20,20 @@ class DetectionProcessor:
         """ Initializes the detection processor.
 
         Keyword arguments:
-        target_classes -- list of class IDs to keep. 
+        target_classes -- list of classes of objects to keep. 
         """
+
+        # If no target classes are provided, 
+        # we default to detecting drones.
         if target_classes is None:
-            target_classes = ["0", "drone", "quadricopter", "Drone"]
+            target_classes = [
+                "0", "drone", "quadricopter", "Drone"
+                ]
         
-        self.target_classes = [cls.lower() for cls in target_classes]
+        # The target classes are stored in lowercase for consistency.
+        self.target_classes = [
+            cls.lower() for cls in target_classes
+            ]
 
     def process_detections(
             self, detections):
@@ -40,7 +48,8 @@ class DetectionProcessor:
         # Our filtered detections will be stored here.
         filtered_detections = []
 
-        # Each detection is to have a bounding box, confidence, and class ID.
+        # Each detection is to have a bounding box, confidence, class ID,
+        # and a label.
         for detection in detections:
             bbox = detection[
                 "bbox"
@@ -75,6 +84,9 @@ class DetectionProcessor:
                 }
 
                 # The processed detection is appended to the filtered detections.
-                filtered_detections.append(processed_detection)
+                filtered_detections.append(
+                    processed_detection
+                    )
 
         return filtered_detections
+    

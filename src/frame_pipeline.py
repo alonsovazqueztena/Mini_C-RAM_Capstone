@@ -4,27 +4,31 @@
 # I used source code from the following 
 # website to complete this assignment:
 # https://chatgpt.com/share/67a17189-ca30-800e-858d-aac289e6cb56
-# (used as starter code for basic functionality).
+# (used as starter code for basic functionality) and
+# https://chatgpt.com/share/67d77b29-c824-800e-ab25-2cc850596046
+# (used to improve the frame pipeline further).
+
+# This allows for the asynchronous execution of the AI model
+# predictions using threads.
+import concurrent.futures
 
 # This project requires the usage of logs for the developer
 # to understand the conditions of the system, whether
 # an error has occurred or the execution of the class was a success.
 import logging
 
-# This project requires the usage of computer vision.
-
-# In this case, OpenCV will be used.
-import cv2 as cv
-
-import concurrent.futures
-
 # All the classes are imported from the src folder
 # to be used in the frame pipeline class.
+from ai_model_interface import AIModelInterface
 from detection_processor import DetectionProcessor
 from frame_processor import FrameProcessor
 from tracking_system import TrackingSystem
 from video_stream_manager import VideoStreamManager
-from ai_model_interface import AIModelInterface
+
+# This project requires the usage of computer vision.
+
+# In this case, OpenCV will be used.
+import cv2 as cv
 
 
 # This class serves as a frame pipeline that 
@@ -171,11 +175,9 @@ class FramePipeline:
         and tracked objects in real time."""
 
         try:
-            # Start the video stream.
+            # Start the video stream and create a thread
+            # pool for concurrent execution of AI model predictions.
             with self.video_stream as stream, concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-                logging.info(
-                    "Starting the pipeline with tracking..."
-                    )
                 
                 # The window view to see the program execution
                 # is through here.
@@ -205,9 +207,12 @@ class FramePipeline:
                     processed_frame = self.frame_processor.preprocess_frame(
                         frame)
                     
-                    future = executor.submit(self.ai_model_interface.predict, processed_frame[0])
+                    # This runs the prediction in a separate thread.
+                    future = executor.submit(
+                        self.ai_model_interface.predict, 
+                        processed_frame[0])
 
-                    # This predicts detections using the YOLO model.
+                    # The results of the prediction are retrieved.
                     raw_detections = future.result()
                     
                     # This filters detections and adds centroids.
@@ -245,8 +250,5 @@ class FramePipeline:
             
         # This ensures that resources are released and windows are closed.
         finally:
-            logging.info(
-                "Releasing resources and closing windows."
-                )
             self.video_stream.release_stream()
             cv.destroyAllWindows()

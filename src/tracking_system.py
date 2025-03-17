@@ -1,10 +1,12 @@
 # Alonso Vazquez Tena
 # STG-452: Capstone Project II
-# February 3, 2025
+# March 16, 2025
 # I used source code from the following 
 # website to complete this assignment:
 # https://chatgpt.com/share/67a05526-d4d8-800e-8e0d-67b03ca451a8
-# (used as starter code for basic functionality).
+# (used as starter code for basic functionality) and
+# https://chatgpt.com/share/67d77b29-c824-800e-ab25-2cc850596046
+# (used to improve the tracking system further).
 
 # This import ensures there is order for the tracked objects.
 from collections import OrderedDict
@@ -13,10 +15,11 @@ from collections import OrderedDict
 # for data processing.
 import numpy as np
 
+# This import is used for the Hungarian algorithm.
+from scipy.optimize import linear_sum_assignment
+
 # This import is used to calculate the distance between centroids.
 from scipy.spatial import distance as dist
-
-from scipy.optimize import linear_sum_assignment
 
 
 # This class serves as a tracking system for multiple objects.
@@ -36,10 +39,12 @@ class TrackingSystem:
         an object may go missing before it is deregistered,
         max_distance -- Maximum allowed centroid distance 
         for matching an existing object to a new detection.
+        smoothing_alpha -- Smoothing factor for velocity and centroid updates.
         """
 
-        # This sets the default value for the next object's ID and
-        # creates dictionaries to store objects and disappeared objects.
+        # This sets the default value for the next object's ID,
+        # creates dictionaries to store objects and disappeared objects,
+        # and sets the parameters for disappearance, distance, and smoothing.
         self.next_object_id = 0
         self.objects = OrderedDict()
         self.disappeared = OrderedDict()
@@ -52,8 +57,11 @@ class TrackingSystem:
             self, detection):
         """Register a new object (detection) in the tracking system."""
         
-        detection['trajectory'] = [detection['centroid']]
-        detection['velocity'] = (0, 0)
+        # The new object is stored with its trajectory and velocity initialized.
+        detection['trajectory'] = [
+            detection['centroid']]
+        detection['velocity'] = (
+            0, 0)
 
         # The new object is stored in the objects dictionary.
         self.objects[self.next_object_id] = detection
@@ -61,14 +69,20 @@ class TrackingSystem:
         self.next_object_id += 1
 
     # This method deregisters an object from the tracking system.
-    def deregister(self, object_id):
+    def deregister(
+            self, object_id):
         """Remove an object from the tracking system."""
 
-        del self.objects[object_id]
-        del self.disappeared[object_id]
+        del self.objects[
+            object_id
+            ]
+        del self.disappeared[
+            object_id
+            ]
 
     # This updates the tracked objects with new detection data.
-    def update(self, detections):
+    def update(
+            self, detections):
         """Update tracked objects with new detection data."""
 
         # If there are no new detections, mark existing objects as disappeared.
@@ -92,7 +106,7 @@ class TrackingSystem:
                     det)
         else:
 
-            # Prepare to match current tracked objects to new detections via centroid distance.
+            # Get the current object IDs and their centroids.
             object_ids = list(
                 self.objects.keys())
             object_centroids = np.array([
@@ -102,11 +116,13 @@ class TrackingSystem:
             distance_matrix = dist.cdist(
                 object_centroids, input_centroids)
 
+            # Apply the Hungarian algorithm to find the optimal assignment.
             row_indices, col_indices = linear_sum_assignment(distance_matrix)
 
             # Keep track of matched rows & columns to avoid double assignment.
             used_rows, used_cols = set(), set()
 
+            # Iterate over the matched pairs.
             for row, col in zip(
                     row_indices, col_indices):
                 
@@ -123,34 +139,45 @@ class TrackingSystem:
                 prev_centroid = self.objects[object_id]["centroid"]
                 new_centroid = detections[col]["centroid"]
 
+                # Apply smoothing to the centroid.
                 smoothed_centroid = (
                     self.smoothing_alpha * new_centroid[0] + (1 - self.smoothing_alpha) * prev_centroid[0],
                     self.smoothing_alpha * new_centroid[1] + (1 - self.smoothing_alpha) * prev_centroid[1]
                 )
 
+                # Calculate the velocity based on the smoothed centroid.
                 raw_velocity = (
                     smoothed_centroid[0] - prev_centroid[0],
                     smoothed_centroid[1] - prev_centroid[1]
                 )
 
+                # Take the previous velocity into account for smoothing.
                 prev_velocity = self.objects[object_id]["velocity"]
 
+                # Apply smoothing to the velocity.
                 smoothed_velocity = (
                     self.smoothing_alpha * raw_velocity[0] + (1 - self.smoothing_alpha) * prev_velocity[0],
                     self.smoothing_alpha * raw_velocity[1] + (1 - self.smoothing_alpha) * prev_velocity[1]
                 )
                 
+                # Update the object with the new smoothed velocity.
                 detections[col]["velocity"] = smoothed_velocity
                 
+                # Update the trajectory with the smoothed centroid.
                 trajectory = self.objects[object_id].get("trajectory", [])
-                trajectory.append(smoothed_centroid)
+                trajectory.append(
+                    smoothed_centroid
+                    )
                 detections[col]["trajectory"] = trajectory
 
+                # Update the tracked object with the new smoothed centroid.
                 detections[col]["centroid"] = smoothed_centroid
                 
+                # Update the tracked object with the new detection.
                 self.objects[object_id] = detections[col]
                 self.disappeared[object_id] = 0
 
+                # Mark this row and column as used.
                 used_rows.add(row)
                 used_cols.add(col)
 
@@ -170,3 +197,4 @@ class TrackingSystem:
                     detections[col])
 
         return self.objects
+    

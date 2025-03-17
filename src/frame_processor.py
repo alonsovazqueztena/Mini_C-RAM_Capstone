@@ -7,8 +7,8 @@
 # (used as starter code for basic functionality).
 
 # This project requires the usage of logs for the developer
-# to understand the conditions of the system, whether
-# an error has occurred or the execution of the class was a success.
+# to understand the conditions of the system, if an
+# an error has occurred.
 import logging
 
 # This project requires the usage of computer vision.
@@ -52,7 +52,7 @@ class FrameProcessor:
         # Basic info is put in, which includes the time, 
         # level name, and messages.
         logging.basicConfig(
-            level=logging.INFO, 
+            level=logging.WARNING, 
             format="%(asctime)s - %(levelname)s - %(message)s"
             )
     
@@ -70,28 +70,15 @@ class FrameProcessor:
                 "ERROR: Invalid frame provided."
                 )
 
-        # The original frame size is logged.
-        logging.info(
-            f"Original frame size: {frame.shape}"
-            )
-
         # Resize the frame to the target dimensions.
         resized_frame = cv.resize(
             frame, (self.target_width, 
             self.target_height))
-        
-        # This demonstrates in a log what dimension the frame was resized to.
-        logging.info(
-            f"Resized frame to: {self.target_width} by {self.target_height}"
-            )
 
         # This applies a median blur filter to the resized frame,
         # allowing for improved drone detection due to a noise reduction.
         blurred_frame = cv.medianBlur(
             resized_frame, 3)
-        logging.info(
-            "Applied median blur filter with kernel size 3"
-            )
 
         # This adds a batch dimension as the AI model expects 4D input: 
         # batch, width, height, and channels.
@@ -99,9 +86,6 @@ class FrameProcessor:
         # We are looking at one frame at a time for the batch.
         preprocessed_frame = np.expand_dims(
             blurred_frame, axis=0)
-        logging.info(
-            f"Added batch dimension. Preprocessed frame shape: {preprocessed_frame.shape}"
-            )
         
         # We return the preprocessed frame.
         return preprocessed_frame
