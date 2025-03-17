@@ -1,6 +1,6 @@
 # Alonso Vazquez Tena
 # STG-452: Capstone Project II
-# February 21, 2025
+# March 16, 2025
 # I used source code from the following 
 # website to complete this assignment:
 # https://chatgpt.com/share/67a17189-ca30-800e-858d-aac289e6cb56
@@ -15,6 +15,8 @@ import logging
 
 # In this case, OpenCV will be used.
 import cv2 as cv
+
+import concurrent.futures
 
 # All the classes are imported from the src folder
 # to be used in the frame pipeline class.
@@ -170,7 +172,7 @@ class FramePipeline:
 
         try:
             # Start the video stream.
-            with self.video_stream as stream:
+            with self.video_stream as stream, concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
                 logging.info(
                     "Starting the pipeline with tracking..."
                     )
@@ -202,10 +204,11 @@ class FramePipeline:
                     # This preprocesses frame for the YOLO model.
                     processed_frame = self.frame_processor.preprocess_frame(
                         frame)
+                    
+                    future = executor.submit(self.ai_model_interface.predict, processed_frame[0])
 
                     # This predicts detections using the YOLO model.
-                    raw_detections = self.ai_model_interface.predict(
-                        processed_frame[0])
+                    raw_detections = future.result()
                     
                     # This filters detections and adds centroids.
                     processed_detections = self.detection_processor.process_detections(
