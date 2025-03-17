@@ -1,14 +1,14 @@
 # Alonso Vazquez Tena
 # STG-452: Capstone Project II
-# February 21, 2025
+# March 15, 2025
 # I used source code from the following 
 # website to complete this assignment:
 # https://chatgpt.com/share/67a05526-d4d8-800e-8e0d-67b03ca451a8
 # (used as starter code for basic functionality).
 
 # This project requires the usage of logs for the developer
-# to understand the conditions of the system, whether
-# an error has occurred or the execution of the class was a success.
+# to understand the conditions of the system, if an
+# an error has occurred.
 import logging
 
 # This project requires the usage of computer vision.
@@ -52,7 +52,7 @@ class FrameProcessor:
         # Basic info is put in, which includes the time, 
         # level name, and messages.
         logging.basicConfig(
-            level=logging.INFO, 
+            level=logging.WARNING, 
             format="%(asctime)s - %(levelname)s - %(message)s"
             )
     
@@ -70,70 +70,22 @@ class FrameProcessor:
                 "ERROR: Invalid frame provided."
                 )
 
-        # The original frame size is logged.
-        logging.info(
-            f"Original frame size: {frame.shape}"
-            )
-
         # Resize the frame to the target dimensions.
         resized_frame = cv.resize(
             frame, (self.target_width, 
             self.target_height))
-        
-        # This demonstrates in a log what dimension the frame was resized to.
-        logging.info(
-            f"Resized frame to: {self.target_width} by {self.target_height}"
-            )
+
+        # This applies a median blur filter to the resized frame,
+        # allowing for improved drone detection due to a noise reduction.
+        blurred_frame = cv.medianBlur(
+            resized_frame, 3)
 
         # This adds a batch dimension as the AI model expects 4D input: 
         # batch, width, height, and channels.
 
         # We are looking at one frame at a time for the batch.
         preprocessed_frame = np.expand_dims(
-            resized_frame, axis=0)
-        logging.info(
-            f"Added batch dimension. Preprocessed frame shape: {preprocessed_frame.shape}"
-            )
+            blurred_frame, axis=0)
         
         # We return the preprocessed frame.
         return preprocessed_frame
-
-    # This preprocesses multiple frames for AI input.
-
-    # This takes a list of frames and returns a 
-    # batch of preprocessed frames.
-
-    # This method is not used, but is available to be included and adapted.
-    def preprocess_frames(
-            self, frames):
-        """Preprocesses multiple frames for YOLO input."""
-
-        # If the frames are invalid or empty, an error is logged and raised.
-        if not frames or not isinstance(
-                frames, list):
-            logging.error(
-                "Invalid list of frames provided for batch preprocessing."
-                )
-            raise ValueError(
-                "ERROR: Invalid list of frames provided."
-                )
-        
-        # The number of frames in the batch is logged.
-        logging.info(
-            f"Processing a batch of {len(frames)} frames."
-            )
-
-        # Preprocess each frame in the list.
-        preprocessed_frames = [
-            self.preprocess_frame(frame) for frame in frames
-            ]
-
-        # This combines all preprocessed frames into a single batch.
-        batch_frames = np.vstack(
-            preprocessed_frames)
-        logging.info(
-            f"Batch of preprocessed frames shape: {batch_frames.shape}"
-            )
-
-        # We return the batch of preprocessed frames.
-        return batch_frames

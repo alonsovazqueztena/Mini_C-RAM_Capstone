@@ -1,6 +1,6 @@
 # Alonso Vazquez Tena
 # STG-452: Capstone Project II
-# February 21, 2025
+# March 16, 2025
 # I used source code from the following 
 # website to complete this assignment:
 # https://chatgpt.com/share/67a17189-ca30-800e-858d-aac289e6cb56
@@ -18,12 +18,12 @@ import cv2 as cv
 
 # All the classes are imported from the src folder
 # to be used in the frame pipeline class.
+from ai_model_interface import AIModelInterface
 from detection_processor import DetectionProcessor
 from frame_pipeline import FramePipeline
 from frame_processor import FrameProcessor
 from tracking_system import TrackingSystem
 from video_stream_manager import VideoStreamManager
-from ai_model_interface import AIModelInterface
 
 # This method tests the video stream manager 
 # by attempting to capture a single frame.
@@ -37,7 +37,7 @@ def test_video_stream_manager():
     try:
         # This initializes the video stream manager.
         video_stream = VideoStreamManager(
-            capture_device=0, frame_width=1920, 
+            capture_device=1, frame_width=1920, 
             frame_height=1080)
         
         # This captures a single frame.
@@ -49,11 +49,11 @@ def test_video_stream_manager():
                 raise RuntimeError(
                     "Failed to capture frame in VideoStreamManager test."
                     )
-            
-            # If the frame is captured successfully, a log is created.
-            logging.info(
-                f"Frame captured successfully with shape: {frame.shape}"
-                )
+        
+        # We log that the video stream test was successful.
+        logging.info(
+            "VideoStreamManager test completed successfully.\n"
+            )
             
     # If an exception is raised, the error is logged.
     except Exception as e:
@@ -92,10 +92,10 @@ def test_frame_processor():
             raise RuntimeError(
                 "Preprocessed frame is None or empty."
                 )
-
-        # If the processed frame is successfully created, a log is created.
+        
+        # We log that the frame processor test was successful.
         logging.info(
-            f"Preprocessed frame shape: {processed_frame.shape}"
+            "FrameProcessor test completed successfully.\n"
             )
         
     # If an exception is raised, the error is logged.
@@ -110,7 +110,9 @@ def test_ai_model_interface():
     """Test the AIModelInterface by 
     running inference on a sample image."""
 
-    logging.info("Testing AIModelInterface...")
+    logging.info(
+        "Testing AIModelInterface..."
+        )
     try:
         # This initializes the AI model interface.
         ai_interface = AIModelInterface(
@@ -128,12 +130,13 @@ def test_ai_model_interface():
                 )
 
         # This runs inference on the test image.
-        detections = ai_interface.predict(
-            test_img)
+        ai_interface.predict(
+            test_img
+            )
         
-        # A log is created with the raw YOLO detections.
+        # We log that the AI model interface test was successful.
         logging.info(
-            f"Raw AI detections: {detections}"
+            "AIModelInterface test completed successfully.\n"
             )
         
     # If an exception is raised, the error is logged.
@@ -149,7 +152,9 @@ def test_detection_processor():
     """ Test the DetectionProcessor by running AI on a sample image
     and then processing the raw detections."""
 
-    logging.info("Testing DetectionProcessor...")
+    logging.info(
+        "Testing DetectionProcessor..."
+        )
     try:
 
         # The YOLO model interface is initialized.
@@ -159,7 +164,7 @@ def test_detection_processor():
 
         # The test image is loaded for YOLO.
         test_img = cv.imread(
-            "../images/drone_mock_test_1.jpg")
+            "../images/drone_mock_test_2.jpg")
         
         # If the test image is empty or cannot be found, an error is raised.
         if test_img is None:
@@ -169,24 +174,27 @@ def test_detection_processor():
 
         # This runs inference on the test image.
         raw_detections = ai_interface.predict(
-            test_img)
-        
-        # A log is created with the raw YOLO detections.
-        logging.info(
-            f"Raw detections from AI: {raw_detections}"
+            test_img
             )
 
         # The detection processor is initialized.
         detection_processor = DetectionProcessor(
-            target_classes=None,
-            confidence_threshold=0.5
-        )
+            target_classes=None
+            )
 
-        # Detections are processed by the detection processor.
+        # The raw detections are processed.
         processed_detections = detection_processor.process_detections(
-            raw_detections)
+            raw_detections
+            )
+        
+        # We log that the processed detections that were made.
         logging.info(
-            f"Processed detections: {processed_detections}"
+            f"{processed_detections}"
+            )
+        
+        # We log that the detection processor test was successful.
+        logging.info(
+            "DetectionProcessor test completed successfully.\n"
             )
 
     # If an exception is raised, the error is logged.
@@ -210,7 +218,7 @@ def test_frame_pipeline():
 
         # The frame pipeline is initialized.
         pipeline = FramePipeline(
-            capture_device=0, 
+            capture_device=1, 
             frame_width=1920, 
             frame_height=1080, 
             target_width=1920, 
@@ -222,7 +230,7 @@ def test_frame_pipeline():
         # The frame pipeline is run and stops when the user quits.
         pipeline.run()
         logging.info(
-            "FramePipeline test completed successfully."
+            "FramePipeline test completed successfully.\n"
             )
         
     # If an exception is raised, the error is logged.
@@ -231,49 +239,8 @@ def test_frame_pipeline():
             f"FramePipeline test failed: {e}"
             )
 
-# This method tests the frame pipeline by 
-# running a continuous video stream at full HD,
-# and includes detection and tracking.
-def test_frame_pipeline_with_tracking():
-    """Test the FramePipeline by running a 
-    continuous video stream at full HD,
-    including detection and tracking."""
-
-    logging.info(
-        "Testing FramePipeline with TrackingSystem..."
-        )
-    try:
-
-        # Initialize the TrackingSystem for the FramePipeline.
-        tracker = TrackingSystem(
-            max_disappeared=50, max_distance=50)
-
-        # Initialize the FramePipeline and pass the tracker.
-        pipeline = FramePipeline(
-            capture_device=0, 
-            frame_width=1920, 
-            frame_height=1080, 
-            target_width=1920, 
-            target_height=1080,
-            model_path="drone_detector_ai.pt",
-            confidence_threshold=0.5,
-            detection_processor=None,
-            tracking_system=tracker
-        )
-
-        # The frame pipeline is run and stops when the user quits.
-        pipeline.run()
-        logging.info(
-            "FramePipeline with TrackingSystem test completed successfully."
-            )
-        
-    # If an exception is raised, the error is logged.
-    except Exception as e:
-        logging.error(
-            f"FramePipeline with TrackingSystem test failed: {e}"
-            )
-
-# This method is the main entry point for testing all modules in a single script.
+# This method is the main entry point for 
+# testing all modules in a single script.
 def main():
     """Main entry point for testing all modules in a single script."""
 
@@ -283,7 +250,7 @@ def main():
         format="%(asctime)s - %(levelname)s - %(message)s"
         )
     logging.info(
-        "Starting all module tests..."
+        "Starting all module tests...\n"
         )
 
     # This tests the VideoStreamManager (basic frame capture).
@@ -299,12 +266,8 @@ def main():
     test_detection_processor()
 
     # This tests the FramePipeline 
-    # (real-time video + AI detection + full HD).
+    # (all modules tested together).
     test_frame_pipeline()
-
-    # This tests the FramePipeline with tracking 
-    # (real-time detection + tracking).
-    test_frame_pipeline_with_tracking()
 
     logging.info(
         "All module tests completed."

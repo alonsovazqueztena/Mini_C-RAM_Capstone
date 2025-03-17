@@ -1,28 +1,34 @@
 # Alonso Vazquez Tena
 # STG-452: Capstone Project II
-# February 21, 2025
+# March 16, 2025
 # I used source code from the following 
 # website to complete this assignment:
 # https://chatgpt.com/share/67a17189-ca30-800e-858d-aac289e6cb56
-# (used as starter code for basic functionality).
+# (used as starter code for basic functionality) and
+# https://chatgpt.com/share/67d77b29-c824-800e-ab25-2cc850596046
+# (used to improve the frame pipeline further).
+
+# This allows for the asynchronous execution of the AI model
+# predictions using threads.
+import concurrent.futures
 
 # This project requires the usage of logs for the developer
 # to understand the conditions of the system, whether
 # an error has occurred or the execution of the class was a success.
 import logging
 
-# This project requires the usage of computer vision.
-
-# In this case, OpenCV will be used.
-import cv2 as cv
-
 # All the classes are imported from the src folder
 # to be used in the frame pipeline class.
+from ai_model_interface import AIModelInterface
 from detection_processor import DetectionProcessor
 from frame_processor import FrameProcessor
 from tracking_system import TrackingSystem
 from video_stream_manager import VideoStreamManager
-from ai_model_interface import AIModelInterface
+
+# This project requires the usage of computer vision.
+
+# In this case, OpenCV will be used.
+import cv2 as cv
 
 
 # This class serves as a frame pipeline that 
@@ -36,7 +42,7 @@ class FramePipeline:
     # This method initializes the frame pipeline.
     def __init__(
         self,
-        capture_device=0,
+        capture_device=1,
         frame_width=1920,
         frame_height=1080,
         target_width=1920,
@@ -82,8 +88,7 @@ class FramePipeline:
         # Use a provided detection processor or create 
         # one with default parameters.
         self.detection_processor = detection_processor or DetectionProcessor(
-            target_classes=None, 
-            confidence_threshold=confidence_threshold
+            target_classes=None
         )
 
         # Use a provided tracking system or create one 
@@ -110,7 +115,7 @@ class FramePipeline:
                 int, bbox)
 
             # The label is prepared with the confidence.
-            label = f"drone {confidence:.2f}"
+            label = f"drone {confidence:.3f}"
             font = cv.FONT_HERSHEY_TRIPLEX
             font_scale = 2
             thickness = 4
@@ -170,11 +175,9 @@ class FramePipeline:
         and tracked objects in real time."""
 
         try:
-            # Start the video stream.
-            with self.video_stream as stream:
-                logging.info(
-                    "Starting the pipeline with tracking..."
-                    )
+            # Start the video stream and create a thread
+            # pool for concurrent execution of AI model predictions.
+            with self.video_stream as stream, concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
                 
                 # The window view to see the program execution
                 # is through here.
@@ -203,10 +206,14 @@ class FramePipeline:
                     # This preprocesses frame for the YOLO model.
                     processed_frame = self.frame_processor.preprocess_frame(
                         frame)
-
-                    # This predicts detections using the YOLO model.
-                    raw_detections = self.ai_model_interface.predict(
+                    
+                    # This runs the prediction in a separate thread.
+                    future = executor.submit(
+                        self.ai_model_interface.predict, 
                         processed_frame[0])
+
+                    # The results of the prediction are retrieved.
+                    raw_detections = future.result()
                     
                     # This filters detections and adds centroids.
                     processed_detections = self.detection_processor.process_detections(
@@ -243,8 +250,5 @@ class FramePipeline:
             
         # This ensures that resources are released and windows are closed.
         finally:
-            logging.info(
-                "Releasing resources and closing windows."
-                )
             self.video_stream.release_stream()
             cv.destroyAllWindows()

@@ -1,6 +1,6 @@
 # Alonso Vazquez Tena
 # STG-452: Capstone Project II
-# February 22, 2025
+# March 16, 2025
 # I used source code from the following 
 # website to complete this assignment:
 # https://chatgpt.com/share/67a05526-d4d8-800e-8e0d-67b03ca451a8
@@ -16,19 +16,27 @@ class DetectionProcessor:
 
     # This method initializes the detection processor.
     def __init__(
-            self, target_classes=None, 
-            confidence_threshold=0.5):
+            self, target_classes=None):
         """ Initializes the detection processor.
 
         Keyword arguments:
-        target_classes -- list of class IDs to keep. 
-        confidence_threshold -- minimum confidence 
-        threshold to keep a detection.
+        target_classes -- list of classes of objects to keep. 
         """
-        self.target_classes = target_classes if target_classes is not None else []
-        self.confidence_threshold = confidence_threshold
 
-    def process_detections(self, detections):
+        # If no target classes are provided, 
+        # we default to detecting drones.
+        if target_classes is None:
+            target_classes = [
+                "0", "drone", "quadricopter", "Drone"
+                ]
+        
+        # The target classes are stored in lowercase for consistency.
+        self.target_classes = [
+            cls.lower() for cls in target_classes
+            ]
+
+    def process_detections(
+            self, detections):
         """ Processes raw detections from the YOLO model.
 
         Keyword arguments:
@@ -40,7 +48,8 @@ class DetectionProcessor:
         # Our filtered detections will be stored here.
         filtered_detections = []
 
-        # Each detection is to have a bounding box, confidence, and class ID.
+        # Each detection is to have a bounding box, confidence, class ID,
+        # and a label.
         for detection in detections:
             bbox = detection[
                 "bbox"
@@ -51,13 +60,15 @@ class DetectionProcessor:
             class_id = detection[
                 "class_id"
                 ]
+            label = detection[
+                "label"
+                ].lower()
 
             # The bounding box is unpacked into its components.
             x_min, y_min, x_max, y_max = bbox
 
             # This filters by confidence and class IDs.
-            if confidence >= self.confidence_threshold and \
-               (not self.target_classes or class_id in self.target_classes):
+            if not self.target_classes or label in self.target_classes:
 
                 # The centroid of the bounding box is calculated.
                 x_center = (x_min + x_max) / 2
@@ -68,10 +79,14 @@ class DetectionProcessor:
                     "bbox": bbox,
                     "confidence": confidence,
                     "class_id": class_id,
-                    "centroid": (x_center, y_center),
+                    "label": label,
+                    "centroid": (x_center, y_center)
                 }
 
                 # The processed detection is appended to the filtered detections.
-                filtered_detections.append(processed_detection)
+                filtered_detections.append(
+                    processed_detection
+                    )
 
         return filtered_detections
+    
