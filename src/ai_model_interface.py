@@ -50,51 +50,44 @@ class AIModelInterface:
         logging.basicConfig(
             level=logging.WARNING, 
             format="%(asctime)s - %(levelname)s - %(message)s"
-            )
+        )
 
         # This loads the AI model from the specified path.
 
         # This handles the error that occurs when the
         # AI model path is not found.
         try:
-            self.model = YOLO(
-                self.model_path)
+            self.model = YOLO(self.model_path)
         except Exception as e:
             logging.error(
                 f"Failed to load AI model from {self.model_path}: {e}"
-                )
+            )
             raise
 
     # This method runs inference on a single frame.
-    def predict(
-            self, frame):
+    def predict(self, frame):
         """Runs inference on a single frame and extracts detections."""
-
         try:
             # This runs an inference on a frame.
 
             # The frame size must be 640 for the YOLOv11n model.
             results = self.model.predict(
-                source=frame, imgsz=640, 
-                conf=self.confidence_threshold)
+                source=frame, imgsz=640, conf=self.confidence_threshold, verbose=False
+            )
 
             # This processes the results by adding the detection to a list.
             detections = []
 
             for result in results:
-
                 # This checks if any boxes are available.
                 if result.boxes is not None: 
                     for box in result.boxes:
-
                         # This extracts a bounding box, confidence, 
                         # and the label for the class ID.
                         x_min, y_min, x_max, y_max = box.xyxy[0].tolist()
                         confidence = box.conf[0].item()
-                        class_id = int(
-                            box.cls[0].item())
-                        label = self.model.names[
-                            class_id]
+                        class_id = int(box.cls[0].item())
+                        label = self.model.names[class_id]
 
                         # If a detection is above the 
                         # confidence threshold,
@@ -106,13 +99,11 @@ class AIModelInterface:
                                 "class_id": class_id,
                                 "label": label
                             })
-
             return detections
 
         # Any errors that occur during prediction are logged.
         except Exception as e:
             logging.error(
                 f"Error during prediction: {e}"
-                )
+            )
             return []
-        
