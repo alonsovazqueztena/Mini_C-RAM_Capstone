@@ -5,14 +5,13 @@
 # website to complete this assignment:
 # https://chatgpt.com/share/67a17189-ca30-800e-858d-aac289e6cb56
 # (used as starter code for basic functionality).
-
+# capture_device=0 for gopro and phone
 # This project requires the usage of logs for the developer
 # to understand the conditions of the system, whether
 # an error has occurred or the execution of the class was a success.
 import logging
 
 # This project requires the usage of computer vision.
-
 # In this case, OpenCV will be used.
 import cv2 as cv
 
@@ -31,9 +30,6 @@ def test_video_stream_manager():
     """Test the VideoStreamManager by attempting 
     to capture a single frame."""
 
-    logging.info(
-        "Testing VideoStreamManager..."
-        )
     try:
         # This initializes the video stream manager.
         video_stream = VideoStreamManager(
@@ -49,11 +45,6 @@ def test_video_stream_manager():
                 raise RuntimeError(
                     "Failed to capture frame in VideoStreamManager test."
                     )
-        
-        # We log that the video stream test was successful.
-        logging.info(
-            "VideoStreamManager test completed successfully.\n"
-            )
             
     # If an exception is raised, the error is logged.
     except Exception as e:
@@ -65,9 +56,6 @@ def test_video_stream_manager():
 def test_frame_processor():
     """Test the FrameProcessor by processing a dummy image."""
 
-    logging.info(
-        "Testing FrameProcessor..."
-        )
     try:
         # This initializes the frame processor.
         processor = FrameProcessor(
@@ -93,11 +81,6 @@ def test_frame_processor():
                 "Preprocessed frame is None or empty."
                 )
         
-        # We log that the frame processor test was successful.
-        logging.info(
-            "FrameProcessor test completed successfully.\n"
-            )
-        
     # If an exception is raised, the error is logged.
     except Exception as e:
         logging.error(
@@ -110,9 +93,6 @@ def test_ai_model_interface():
     """Test the AIModelInterface by 
     running inference on a sample image."""
 
-    logging.info(
-        "Testing AIModelInterface..."
-        )
     try:
         # This initializes the AI model interface.
         ai_interface = AIModelInterface(
@@ -134,11 +114,6 @@ def test_ai_model_interface():
             test_img
             )
         
-        # We log that the AI model interface test was successful.
-        logging.info(
-            "AIModelInterface test completed successfully.\n"
-            )
-        
     # If an exception is raised, the error is logged.
     except Exception as e:
         logging.error(
@@ -152,11 +127,7 @@ def test_detection_processor():
     """ Test the DetectionProcessor by running AI on a sample image
     and then processing the raw detections."""
 
-    logging.info(
-        "Testing DetectionProcessor..."
-        )
     try:
-
         # The YOLO model interface is initialized.
         ai_interface = AIModelInterface(
             model_path="drone_detector_ai.pt", 
@@ -183,20 +154,10 @@ def test_detection_processor():
             )
 
         # The raw detections are processed.
-        processed_detections = detection_processor.process_detections(
+        detection_processor.process_detections(
             raw_detections
             )
         
-        # We log that the processed detections that were made.
-        logging.info(
-            f"{processed_detections}"
-            )
-        
-        # We log that the detection processor test was successful.
-        logging.info(
-            "DetectionProcessor test completed successfully.\n"
-            )
-
     # If an exception is raised, the error is logged.
     except Exception as e:
         logging.error(
@@ -211,11 +172,7 @@ def test_frame_pipeline():
     running a continuous video stream at full HD,
     processing each frame, and running AI detection."""
 
-    logging.info(
-        "Testing FramePipeline..."
-        )
     try:
-
         # The frame pipeline is initialized.
         pipeline = FramePipeline(
             capture_device=0, 
@@ -229,9 +186,6 @@ def test_frame_pipeline():
 
         # The frame pipeline is run and stops when the user quits.
         pipeline.run()
-        logging.info(
-            "FramePipeline test completed successfully.\n"
-            )
         
     # If an exception is raised, the error is logged.
     except Exception as e:
@@ -249,9 +203,6 @@ def main():
         level=logging.INFO, 
         format="%(asctime)s - %(levelname)s - %(message)s"
         )
-    logging.info(
-        "Starting all module tests...\n"
-        )
 
     # This tests the VideoStreamManager (basic frame capture).
     test_video_stream_manager()
@@ -268,10 +219,6 @@ def main():
     # This tests the FramePipeline 
     # (all modules tested together).
     test_frame_pipeline()
-
-    logging.info(
-        "All module tests completed."
-        )
 
 # This runs the main method if the script is executed.
 if __name__ == "__main__":
