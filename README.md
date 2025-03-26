@@ -1,4 +1,4 @@
-# Aegis Beam
+# AIegis Beam
 
 ## Table of Contents
 - [Project Overview](#project-overview)
