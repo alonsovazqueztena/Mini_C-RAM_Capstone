@@ -17,10 +17,8 @@
 ## Project Overview
 A real-time counter-drone system using computer vision and object tracking. Detects UAVs in video streams and simulates countermeasures (laser activation).
 
-[Object Detection Demo Video](https://youtu.be/fowJt3A_c3s)
-
 ## Key Features
-- Real-time object detection using YOLOv11n (or any other compatible AI model)
+- Real-time object detection using YOLO12n
 - Centroid-based object tracking
 - Frame processing pipeline (1920x1080 @ 120FPS)
 - Hardware control interface for laser systems
@@ -52,7 +50,7 @@ A real-time counter-drone system using computer vision and object tracking. Dete
 │   ├── ai_model_interface.py         # AI model wrapper
 │   ├── control_output_manager.py     # Laser control interface (GPIO/PWM)
 │   ├── detection_processor.py        # Filters/processes AI detections
-│   ├── drone_detector_ai.pt          # YOLOv11n drone detector model
+│   ├── drone_detector_best.pt          # YOLO12n drone detector model
 │   ├── frame_pipeline.py             # Main processing workflow
 │   ├── frame_processor.py            # Frame resizing/normalization
 │   ├── main.py                       # Program execution code
@@ -108,18 +106,39 @@ python main.py
 - **USB Webcam**: Plug into available USB port
 - **IP Camera**: Set RTSP URL
 
-**Laser Control**
-- Connect laser module to GPIO 18
-- Power: 5V PWM compatible laser diode
-
 ## Testing
-Run validation tests in test folder:
+### Module Testing
+
+To test the following modules:
+- **Video Stream Manager**
+- **Frame Processor**
+- **AI Model Interface**
+- **Detection Processor**
+- **Tracking System**
+- **Frame Pipeline**
+
+Run:
 
 ```bash
-# Run all unit tests of the program.
-pytest
+# Ensure you are in the correct directory.
 
-# Run an AI model detection test of image.
+cd src
+
+# Run all main module tests of the program.
+
+python main.py
+```
+
+### AI Model Testing
+
+To test the AI model, run:
+
+```bash
+# Ensure you are in the correct directory.
+
+cd test
+
+# Run a drone detection test on an image.
 
 python test_ai.py   # Results in runs folder
 ```
@@ -151,9 +170,19 @@ MIT License - See LICENSE for details
 *University of Advanced Robotics, 2023*
 
 ## Citations and Acknowledgements
-**YOLOv11n**  
-> Glenn Jocher and Jing Qiu.  
-> *Ultralytics YOLO11, version 11.0.0 (2024)*  
-> [GitHub Repository](https://github.com/ultralytics/ultralytics)  
-> ORCID: 0000-0001-5950-6979, 0000-0002-7603-6750, 0000-0003-3783-7069  
-> License: AGPL-3.0
+**YOLO12n**  
+```bibtex
+@article{tian2025yolov12,
+  title={YOLOv12: Attention-Centric Real-Time Object Detectors},
+  author={Tian, Yunjie and Ye, Qixiang and Doermann, David},
+  journal={arXiv preprint arXiv:2502.12524},
+  year={2025}
+}
+
+@software{yolo12,
+  author = {Tian, Yunjie and Ye, Qixiang and Doermann, David},
+  title = {YOLOv12: Attention-Centric Real-Time Object Detectors},
+  year = {2025},
+  url = {https://github.com/sunsmarterjie/yolov12},
+  license = {AGPL-3.0}
+}
