@@ -33,7 +33,7 @@ def test_video_stream_manager():
     try:
         # This initializes the video stream manager.
         video_stream = VideoStreamManager(
-            capture_device=0, frame_width=1920, 
+            capture_device=1, frame_width=1920, 
             frame_height=1080)
         
         # This captures a single frame.
@@ -96,7 +96,7 @@ def test_ai_model_interface():
     try:
         # This initializes the AI model interface.
         ai_interface = AIModelInterface(
-            model_path="drone_detector_ai.pt", 
+            model_path="drone_detector_best.pt", 
             confidence_threshold=0.5)
 
         # A test image is loaded for AI.
@@ -130,7 +130,7 @@ def test_detection_processor():
     try:
         # The YOLO model interface is initialized.
         ai_interface = AIModelInterface(
-            model_path="drone_detector_ai.pt", 
+            model_path="drone_detector_best.pt", 
             confidence_threshold=0.5)
 
         # The test image is loaded for YOLO.
@@ -175,12 +175,12 @@ def test_frame_pipeline():
     try:
         # The frame pipeline is initialized.
         pipeline = FramePipeline(
-            capture_device=0, 
+            capture_device=1, 
             frame_width=1920, 
             frame_height=1080, 
             target_width=1920, 
             target_height=1080,
-            model_path="drone_detector_ai.pt",
+            model_path="drone_detector_best.pt",
             confidence_threshold=0.5
         )
 

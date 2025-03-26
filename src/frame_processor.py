@@ -75,17 +75,12 @@ class FrameProcessor:
             frame, (self.target_width, 
             self.target_height))
 
-        # This applies a median blur filter to the resized frame,
-        # allowing for improved drone detection due to a noise reduction.
-        blurred_frame = cv.medianBlur(
-            resized_frame, 3)
-
         # This adds a batch dimension as the AI model expects 4D input: 
         # batch, width, height, and channels.
 
         # We are looking at one frame at a time for the batch.
         preprocessed_frame = np.expand_dims(
-            blurred_frame, axis=0)
+            resized_frame, axis=0)
         
         # We return the preprocessed frame.
         return preprocessed_frame

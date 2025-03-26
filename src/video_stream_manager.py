@@ -47,7 +47,7 @@ class VideoStreamManager:
     def __init__(
             self, capture_device=1, 
             frame_width=1920, frame_height=1080,
-            max_queue_size=10):
+            max_queue_size=5):
         """Initialize the video stream manager.
         
         Keyword arguments:
@@ -192,7 +192,7 @@ class VideoStreamManager:
         # Try to get a frame from the queue, if available.
         try:
             frame = self.frame_queue.get(
-                timeout=1.0)
+                timeout=0.5)
             logging.debug(
                 f"Retrieved frame of size: {frame.shape}"
                 )

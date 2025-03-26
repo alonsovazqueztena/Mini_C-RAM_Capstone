@@ -31,7 +31,7 @@ class AIModelInterface:
     # For this AI model, we expect the confidence score threshold 
     # to be 0.5 to allow optimal performance.
     def __init__(
-            self, model_path="drone_detector_ai.pt", 
+            self, model_path="drone_detector_best.pt", 
             confidence_threshold=0.5):
         """
         Initializes the AI model interface.
