@@ -17,6 +17,7 @@ runs
 env/
 venv/
 cap/
+venv-clean/
 
 # Ignore generated files
 *.pyc
