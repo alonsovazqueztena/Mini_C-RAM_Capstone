@@ -4,8 +4,8 @@ cd "$(dirname "$0")/.."
 
 # Start qlcplus with the specified workspace file.
 # The workspace file is located in the hardware directory.
-qlcplus -w -o hardware/qlight_workspace.qxw &
+qlcplus -w -o qlight_workspace.qxw &
 
 # Run the main Python script.
-python3 main.py
+python3 run.py
 
