@@ -1,6 +1,6 @@
 # src/run.py
 import logging
-from frame_pipeline import FramePipeline
+from DMX_frame_pipeline import FramePipeline
 
 def main():
     # Configure logging to output messages with timestamp and level.
@@ -17,7 +17,7 @@ def main():
             frame_height=1080,
             target_width=1920,
             target_height=1080,
-            model_path="drone_detector_ai.pt",
+            model_path="drone_detector_best.pt",
             confidence_threshold=0.5
         )
         
