@@ -5,7 +5,7 @@
 # website to complete this assignment:
 # https://chatgpt.com/share/67a17189-ca30-800e-858d-aac289e6cb56
 # (used as starter code for basic functionality).
-# capture_device=0 for gopro and phone
+
 # This project requires the usage of logs for the developer
 # to understand the conditions of the system, whether
 # an error has occurred or the execution of the class was a success.
