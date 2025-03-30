@@ -16,6 +16,8 @@
 
 
 ## Project Overview
+![Poster](readme_images/poster.png)
+
 A real-time counter-drone system using computer vision and object tracking. Detects UAVs in video streams and simulates countermeasures (target locking).
 
 ## Key Features
@@ -348,11 +350,10 @@ git checkout -b feature/new-tracker
 MIT License - See LICENSE for details
 
 ## Maintainers
-- Alonso Vazquez Tena  
-- Daniel Saravia  
+- Alonso Vazquez Tena: AI Engineer
+- Daniel Saravia: System Integration Engineer
 
 **Mentor**: Ryan Woodward  
-*University of Advanced Robotics, 2023*
 
 ## Citations and Acknowledgements
 **YOLO12**  
