@@ -21,3 +21,6 @@ venv-clean/
 
 # Ignore generated files
 *.pyc
+
+# Ignore YOLO12x since it's too large for GitHub
+src/drone_detector_12x.pt

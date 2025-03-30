@@ -63,7 +63,7 @@ def test_frame_processor():
 
         # This loads a dummy frame for testing.
         dummy_frame = cv.imread(
-            "../test-images/drone_mock_test_1.jpg")
+            "../test_images/drone_mock_test_1.jpg")
         
         # If the dummy frame is empty or cannot be found, an error is raised.
         if dummy_frame is None:
@@ -96,12 +96,12 @@ def test_ai_model_interface():
     try:
         # This initializes the AI model interface.
         ai_interface = AIModelInterface(
-            model_path="drone_detector_12m.pt", 
+            model_path="drone_detector_12x.pt", 
             confidence_threshold=0.5)
 
         # A test image is loaded for AI.
         test_img = cv.imread(
-            "../test-images/drone_mock_test_1.jpg")
+            "../test_images/drone_mock_test_1.jpg")
         
         # If the test image is empty or cannot be found, an error is raised.
         if test_img is None:
@@ -130,12 +130,12 @@ def test_detection_processor():
     try:
         # The YOLO model interface is initialized.
         ai_interface = AIModelInterface(
-            model_path="drone_detector_12m.pt", 
+            model_path="drone_detector_12x.pt", 
             confidence_threshold=0.5)
 
         # The test image is loaded for YOLO.
         test_img = cv.imread(
-            "../test-images/drone_mock_test_2.jpg")
+            "../test_images/drone_mock_test_2.jpg")
         
         # If the test image is empty or cannot be found, an error is raised.
         if test_img is None:
@@ -180,7 +180,7 @@ def test_frame_pipeline():
             frame_height=1080, 
             target_width=1920, 
             target_height=1080,
-            model_path="drone_detector_12m.pt",
+            model_path="drone_detector_12x.pt",
             confidence_threshold=0.5
         )
 

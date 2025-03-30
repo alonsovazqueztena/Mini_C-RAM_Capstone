@@ -31,7 +31,7 @@ class FramePipeline:
         frame_height=1080,
         target_width=1920,
         target_height=1080,
-        model_path="drone_detector_best.pt",
+        model_path="drone_detector_12x.pt",
         confidence_threshold=0.5,
         detection_processor=None,
         tracking_system=None
