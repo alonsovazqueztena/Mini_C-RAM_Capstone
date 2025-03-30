@@ -1,2 +1,1 @@
-# This is a placeholder file to allow Python to see 
-# the src folder as a package.
+# This is a placeholder init file to ensure this folder can be imported for Python.

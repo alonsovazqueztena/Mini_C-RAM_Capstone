@@ -16,13 +16,12 @@
 
 
 ## Project Overview
-A real-time counter-drone system using computer vision and object tracking. Detects UAVs in video streams and simulates countermeasures (laser activation).
+A real-time counter-drone system using computer vision and object tracking. Detects UAVs in video streams and simulates countermeasures (target locking).
 
 ## Key Features
-- Real-time object detection using YOLO12n
+- Real-time object detection using YOLO12
 - Centroid-based object tracking
 - Frame processing pipeline (1920x1080 @ 120FPS)
-- Hardware control interface for laser systems
 - Configurable detection thresholds and tracking parameters
 
 ## System Architecture
@@ -32,22 +31,23 @@ A real-time counter-drone system using computer vision and object tracking. Dete
 │   └── ai_model_training_v2.ipynb    # AI model training notebook
 ├── src
 │   ├── ai_model_interface.py         # AI model wrapper
-│   ├── control_output_manager.py     # Laser control interface (GPIO/PWM)
 │   ├── detection_processor.py        # Filters/processes AI detections
-│   ├── drone_detector_best.pt          # YOLO12n drone detector model
+│   ├── dmx_control.py
+│   ├── DMX_frame_pipeline.py
+│   ├── drone_detector_12m.pt         # YOLO12m drone detector model
+│   ├── drone_detector_12n.pt         # YOLO12n drone detector model
+│   ├── drone_detector_12s.pt         # YOLO12s drone detector model
 │   ├── frame_pipeline.py             # Main processing workflow
 │   ├── frame_processor.py            # Frame resizing/normalization
 │   ├── main.py                       # Program execution code
+│   ├── qlight_workspace.qxw
+│   ├── run.py
+│   ├── run.sh
 │   ├── tracking_system.py            # Object tracking implementation
 │   └── video_stream_manager.py       # Camera/stream input handling
 ├── test
-│   ├── test_ai_model_interface.py    # Unit test for AI model interface
-│   ├── test_ai.py                    # Detection test for AI model
-│   ├── test_detection_processor.py   # Unit test for detection processor
-│   ├── test_frame_processor.py       # Unit test for frame processor
-│   ├── test_tracking_system.py       # Unit test for tracking system
-│   └── test_video_stream_manager.py  # Unit test for video stream manager
-└── test-images
+│   └── test_ai.py                    # Detection test for AI model
+└── test_images
     ├── drone_mock_test_1.jpg         # Sample mock test image
     ├── drone_mock_test_2.jpg         # Sample mock test image
     ├── drone_mock_test_3.jpg         # Sample mock test image
@@ -71,8 +71,10 @@ A real-time counter-drone system using computer vision and object tracking. Dete
 ## Installation
 
 ### Prerequisites
-- Python 3.11.1+
+- Python 3.11.9
+- PIP 25.0.1
 - Windows 11 or Ubuntu 20.04
+- Nvidia GPU (to use CUDA)
 - USB Webcam or IP Camera
 
 ```bash
@@ -101,8 +103,6 @@ python main.py
 | Key | Description            |
 |-----|------------------------|
 | q   | Quit system            |
-| p   | Pause processing       |
-| d   | Toggle debug overlay   |
 
 ## Hardware Setup
 **Camera Connection**
@@ -110,8 +110,8 @@ python main.py
 - **IP Camera**: Set RTSP URL
 
 ## Model Training
-### Important Considerations
-1. The Junyper notebook used to train the YOLO12n model is found within the notebooks folder.
+### General Steps
+1. The Junyper notebook used to train the YOLO12 models is found within the notebooks folder:
 
 ```
 .
@@ -163,32 +163,20 @@ drive.mount('Insert Google Drive path here')
 ```
 
 ```bash
-# We take in the Tensorboard log directory.
-tensorboard_log_dir = "Insert Tensorboard log directory path here"
+# Load and execute a live feed of the Tensorboard graphs.
+%load_ext tensorboard
+%tensorboard --logdir insert/directory/to/runs/here
 ```
 
 ```bash
-# Take in our credentials (must be established through
-        # your email account).
-        yag = yagmail.SMTP(
-            "Insert your email address here",
-            "Insert your Yagmail security code here")
-
-        # Using our email address, send the email.
-        yag.send(
-            to="Insert your email address here",
-            subject=subject,
-            contents=body,
-        )
+# We take in the Tensorboard log directory.
+tensorboard_log_dir = "Insert Tensorboard log directory path here"
 ```
 
 ```bash
 # We load in the YOLO model here.
     model = YOLO(
         "Insert your YOLO model directory path here")
-
-    # We take in the checkpoints directory.
-    checkpoints_dir = "Insert your YOLO model checkpoints directory path here"
 ```
 
 ```bash
@@ -201,19 +189,20 @@ tensorboard_log_dir = "Insert Tensorboard log directory path here"
     train_results = model.train(
         data="Insert your image dataset YAML file path here",
         epochs=100, imgsz=640, device="cuda", save=True, save_period=1,
-        project=tensorboard_log_dir, name=f"run_1_to_100"
+        project=tensorboard_log_dir, name=f"session(insert-number)"
         )
 ```
 
+5. Execute each cell from top to bottom, one at a time.
+
+6. To check live results of the AI model training, examine the Tensorboard server run in this cell:
 ```bash
-# Save the final model with a clear name:
-    final_checkpoint_path = f"{checkpoints_dir}/ai_epoch_100.pt"
+# Load and execute a live feed of the Tensorboard graphs.
+%load_ext tensorboard
+%tensorboard --logdir insert/directory/to/runs/here
 ```
 
-5. Execute each cell from top to bottom.
-
 ### Expected Results
-- **Checkpoints directory**: Every final checkpoint of the AI model is to be stored here.
 - **Tensorboard logs directory**: Every run will be its own subdirectory. In it, the following will be contained:
 
   1. Weights folder (every epoch weight, last weight, best weight)
@@ -233,7 +222,7 @@ tensorboard_log_dir = "Insert Tensorboard log directory path here"
   8. Training arguments YAML file
 
 ### Drone Detection AI Model Results
-The following results were achieved with the final YOLO12n model used for this project:
+The following results were achieved with the final YOLO12m model used for this project:
 
 - **Metric results:**
 
@@ -296,16 +285,45 @@ python main.py
 
 ### AI Model Testing
 
-To test the AI model, run:
+1. The AI testing script is found within the test folder:
+
+```
+.
+├── test
+│   └── test_ai.py                    # Detection test for AI model
+```
+
+2. Update this filepath to any of the YOLO model filepaths:
+```bash
+# We create an instance of the trained YOLO model here.
+model = YOLO("insert_yolo_model_filepath_here")
+```
+
+3. Update this filepath to your test image filepath:
+```bash
+results = model.predict(
+    "insert_test_image_filepath_here", conf=0.5, 
+    imgsz=640, show=True, save=True, project="..\\runs")
+```
+
+4. To test the AI model, run:
 
 ```bash
 # Ensure you are in the correct directory.
 
 cd test
 
-# Run a drone detection test on an image.
+# Run a sign language detection test on an image (must be in JPG format).
 
 python test_ai.py   # Results in runs folder
+```
+
+5. A runs folder will be created or used if present. Within it, a predict folder will be created for every prediction made on an image. The image will have the AI predictions labelled:
+```
+.
+└── runs
+    └── predict 
+        └── processed_test_image.jpg  # Detection test for AI model
 ```
 
 ## Contributing
@@ -320,7 +338,6 @@ git checkout -b feature/new-tracker
 
 ### Coding Standards
 - PEP8 compliance
-- Type hints for public methods
 - Docstrings for all modules
 - 80%+ test coverage
 
@@ -335,7 +352,7 @@ MIT License - See LICENSE for details
 *University of Advanced Robotics, 2023*
 
 ## Citations and Acknowledgements
-**YOLO12n**  
+**YOLO12**  
 ```bibtex
 @article{tian2025yolov12,
   title={YOLOv12: Attention-Centric Real-Time Object Detectors},
@@ -355,17 +372,16 @@ MIT License - See LICENSE for details
 
 **Image Dataset**
 ```bibtex
-@misc{
-uavs-vqpqt_dataset,
-title = { UAVs Dataset },
-type = { Open Source Dataset },
-author = { UAVS },
-howpublished = { \url{ https://universe.roboflow.com/uavs-7l7kv/uavs-vqpqt } },
-url = { https://universe.roboflow.com/uavs-7l7kv/uavs-vqpqt },
-journal = { Roboflow Universe },
-publisher = { Roboflow },
-year = { 2024 },
-month = { dec },
-note = { visited on 2025-03-26 },
+@misc{uavs-vqpqt_dataset,
+  title = { UAVs Dataset },
+  type = { Open Source Dataset },
+  author = { UAVS },
+  howpublished = { \url{ https://universe.roboflow.com/uavs-7l7kv/uavs-vqpqt } },
+  url = { https://universe.roboflow.com/uavs-7l7kv/uavs-vqpqt },
+  journal = { Roboflow Universe },
+  publisher = { Roboflow },
+  year = { 2024 },
+  month = { dec },
+  note = { visited on 2025-03-26 },
 }
 ```
