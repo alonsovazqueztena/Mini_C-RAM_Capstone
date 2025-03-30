@@ -70,7 +70,7 @@ A real-time counter-drone system using computer vision and object tracking. Dete
     └── drone_real_test_15.jpg        # Sample real test image
 ```
 
-NOTE: drone_detector_12x.pt could not be added to the repository due to its size (exceeds 100MB). The link to download it is here: https://drive.google.com/file/d/1yzFKtHaEQzx3OuTVzEUAEHYwTYP83IO0/view?usp=drive_link
+NOTE: drone_detector_12x.pt could not be added to the repository due to its size (exceeds 100MB). The download link is here: https://drive.google.com/file/d/1yzFKtHaEQzx3OuTVzEUAEHYwTYP83IO0/view?usp=drive_link
 ## Installation
 
 ### Prerequisites
