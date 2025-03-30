@@ -34,9 +34,11 @@ A real-time counter-drone system using computer vision and object tracking. Dete
 │   ├── detection_processor.py        # Filters/processes AI detections
 │   ├── dmx_control.py
 │   ├── DMX_frame_pipeline.py
+│   ├── drone_detector_12l.pt         # YOLO12l drone detector model
 │   ├── drone_detector_12m.pt         # YOLO12m drone detector model
 │   ├── drone_detector_12n.pt         # YOLO12n drone detector model
 │   ├── drone_detector_12s.pt         # YOLO12s drone detector model
+│   ├── drone_detector_12x.pt         # YOLO12x drone detector model (SEE NOTE BELOW)
 │   ├── frame_pipeline.py             # Main processing workflow
 │   ├── frame_processor.py            # Frame resizing/normalization
 │   ├── main.py                       # Program execution code
@@ -68,6 +70,7 @@ A real-time counter-drone system using computer vision and object tracking. Dete
     └── drone_real_test_15.jpg        # Sample real test image
 ```
 
+NOTE: drone_detector_12x.pt could not be added to the repository due to its size (exceeds 100MB). The link to download it is here: https://drive.google.com/file/d/1yzFKtHaEQzx3OuTVzEUAEHYwTYP83IO0/view?usp=drive_link
 ## Installation
 
 ### Prerequisites
