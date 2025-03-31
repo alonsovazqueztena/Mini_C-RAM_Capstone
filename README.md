@@ -229,39 +229,39 @@ tensorboard_log_dir = "Insert Tensorboard log directory path here"
 ### Drone Detection AI Model Results
 The following results were achieved with the final YOLO12m model used for this project:
 
-- **Metric results:**
+- **Metric Graphs:**
 
 ![Metric result graphs](readme_images/results.png)
 
-- **R curve:**
+- **Recall-Confidence Curve:**
 
 ![R curve graph](readme_images/R_curve.png)
 
-- **PR curve:**
+- **Precision-Recall Curve:**
 
 ![PR curve graph](readme_images/PR_curve.png)
 
-- **P curve:**
+- **Precision-Confidence Curve:**
 
 ![P curve graph](readme_images/P_curve.png)
 
-- **Labels graphs:**
+- **Label Graphs:**
 
 ![Labels graph](readme_images/labels.jpg)
 
-- **Labels correlogram:**
+- **Label Correlogram:**
 
 ![Labels correlogram](readme_images/labels_correlogram.jpg)
 
-- **F1 curve:**
+- **F1 Curve:**
 
 ![F1 curve](readme_images/F1_curve.png)
 
-- **Confusion matrix:**
+- **Confusion Matrix:**
 
 ![Confusion matrix](readme_images/confusion_matrix.png)
 
-- **Confusion matrix (normalized):**
+- **Confusion Matrix (Normalized):**
 
 ![Confusion matrix normalized](readme_images/confusion_matrix_normalized.png)
 
