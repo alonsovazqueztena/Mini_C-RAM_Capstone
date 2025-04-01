@@ -9,6 +9,7 @@
 - [Hardware Setup](#hardware-setup)
 - [Model Training](#model-training)
 - [Testing](#testing)
+- [Troubleshooting](#troubleshooting)
 - [Contributing](#contributing)
 - [License](#license)
 - [Maintainers](#maintainers)
@@ -330,7 +331,403 @@ python test_ai.py   # Results in runs folder
     └── predict 
         └── processed_test_image.jpg  # Detection test for AI model
 ```
+## Troubleshooting
+### ERROR: No frames available.
+Ensure that all the capture device indexes match to your capture device (0 if its an internal webcam, 1 if its an external webcam such as an Iriun webcam or GoPro).
 
+video_stream_manager.py:
+```bash
+def __init__(
+            self, capture_device=1, # Update the capture device index.
+            frame_width=1920, frame_height=1080,
+            max_queue_size=5):
+```
+
+run.py:
+```bash
+# Initialize the FramePipeline with required parameters.
+        pipeline = FramePipeline(
+            capture_device=0, # Update the capture device index.
+            frame_width=1920,
+            frame_height=1080,
+            target_width=1920,
+            target_height=1080,
+            model_path="drone_detector_12x.pt",
+            confidence_threshold=0.5
+        )
+```
+
+main.py:
+```bash
+# This method tests the video stream manager 
+# by attempting to capture a single frame.
+def test_video_stream_manager():
+    """Test the VideoStreamManager by attempting 
+    to capture a single frame."""
+
+    try:
+        # This initializes the video stream manager.
+        video_stream = VideoStreamManager(
+            capture_device=1, frame_width=1920, # Update the capture device index.
+            frame_height=1080)
+```
+```bash
+def test_frame_pipeline():
+    """Test the FramePipeline by 
+    running a continuous video stream at full HD,
+    processing each frame, and running AI detection."""
+
+    try:
+        # The frame pipeline is initialized.
+        pipeline = FramePipeline(
+            capture_device=1, # Update the capture device index.
+            frame_width=1920, 
+            frame_height=1080, 
+            target_width=1920, 
+            target_height=1080,
+            model_path="drone_detector_12x.pt",
+            confidence_threshold=0.5
+        )
+```
+
+frame_pipeline.py:
+```bash
+class FramePipeline:
+    """A pipeline that captures frames from a video stream, processes them, 
+    runs YOLO + detection filtering, then tracks objects over time."""
+
+    # This method initializes the frame pipeline.
+    def __init__(
+        self,
+        capture_device=1, # Update the capture device index.
+        frame_width=1920,
+        frame_height=1080,
+        target_width=1920,
+        target_height=1080,
+        model_path="drone_detector_12x.pt",
+        confidence_threshold=0.5,
+        detection_processor=None,
+        tracking_system=None
+    ):
+```
+
+DMX_frame_pipeline.py:
+```bash
+class FramePipeline:
+    """A pipeline that captures frames from a video stream, processes them, 
+    runs YOLO + detection filtering, then tracks objects over time.
+    Additionally, it uses the latest detection's centroid to control a moving head light via DMX."""
+    
+    def __init__(
+        self,
+        capture_device=1, # Update the capture device index.
+        frame_width=1920,
+        frame_height=1080,
+        target_width=1920,
+        target_height=1080,
+        model_path="drone_detector_12x.pt",
+        confidence_threshold=0.5,
+        detection_processor=None,
+        tracking_system=None
+    ):
+```
+
+### Resolution Mismatch
+Ensure that the frame resolution (width and height) is updated to match the video feed's resolution:
+
+video_stream_manager.py:
+```bash
+class VideoStreamManager:
+    """Creates and sets up the video stream manager."""
+
+    # This method initializes the video stream manager.
+    
+    # The captured device is taken in as an index and the
+    # frame is expected to be in full HD resolution.
+
+    # Adjust the capture device index accordingly to
+    # to your device as well as the resolution of
+    # your camera.
+    def __init__(
+            self, capture_device=1, 
+            frame_width=1920, frame_height=1080, # Update this resolution.
+            max_queue_size=5):
+```
+run.py:
+```bash
+def main():
+    # Configure logging to output messages with timestamp and level.
+    logging.basicConfig(
+        level=logging.INFO, 
+        format="%(asctime)s - %(levelname)s - %(message)s"
+    )
+    
+    try:
+        # Initialize the FramePipeline with required parameters.
+        pipeline = FramePipeline(
+            capture_device=0,
+            frame_width=1920,
+            frame_height=1080, # Update this resolution.
+            target_width=1920,
+            target_height=1080, # Update this resolution.
+            model_path="drone_detector_12x.pt",
+            confidence_threshold=0.5
+        )
+```
+qlight_workspace.qxw:
+```bash
+<Properties>
+   <Size Width="1920" Height="1080"/> # Update this resolution.
+   <GrandMaster ChannelMode="Intensity" ValueMode="Reduce" SliderMode="Normal"/>
+  </Properties>
+ </VirtualConsole>
+ <SimpleDesk>
+  <Engine/>
+ </SimpleDesk>
+</Workspace>
+```
+
+main.py:
+```bash
+# This method tests the video stream manager 
+# by attempting to capture a single frame.
+def test_video_stream_manager():
+    """Test the VideoStreamManager by attempting 
+    to capture a single frame."""
+
+    try:
+        # This initializes the video stream manager.
+        video_stream = VideoStreamManager(
+            capture_device=1, frame_width=1920, 
+            frame_height=1080) # Update this resolution.
+```
+```bash
+# This method tests the frame processor by processing a dummy image.
+def test_frame_processor():
+    """Test the FrameProcessor by processing a dummy image."""
+
+    try:
+        # This initializes the frame processor.
+        processor = FrameProcessor(
+            target_width=1920, target_height=1080) # Update this resolution.
+```
+```bash
+# This method tests the frame pipeline by 
+# running a continuous video stream at 640x480,
+# processing each frame, and running YOLO detection.
+def test_frame_pipeline():
+    """Test the FramePipeline by 
+    running a continuous video stream at full HD,
+    processing each frame, and running AI detection."""
+
+    try:
+        # The frame pipeline is initialized.
+        pipeline = FramePipeline(
+            capture_device=1, 
+            frame_width=1920, 
+            frame_height=1080, # Update this resolution.
+            target_width=1920, 
+            target_height=1080, # Update this resolution.
+            model_path="drone_detector_12x.pt",
+            confidence_threshold=0.5
+        )
+```
+frame_processor.py:
+```bash
+class FrameProcessor:
+    """Creates and sets up the frame processor."""
+
+    # This method initializes the frame processor.
+    
+    # The target width and height of the frame are taken in as arguments.
+
+    # This can be adjusted as necessary, in this case, we keep
+    # it as the full HD resolution.
+    def __init__(
+            self, target_width=1920, 
+            target_height=1080): # Update this resolution.
+```
+frame_pipeline.py:
+```bash
+class FramePipeline:
+    """A pipeline that captures frames from a video stream, processes them, 
+    runs YOLO + detection filtering, then tracks objects over time."""
+
+    # This method initializes the frame pipeline.
+    def __init__(
+        self,
+        capture_device=1,
+        frame_width=1920,
+        frame_height=1080, # Update this resolution.
+        target_width=1920,
+        target_height=1080, # Update this resolution.
+        model_path="drone_detector_12x.pt",
+        confidence_threshold=0.5,
+        detection_processor=None,
+        tracking_system=None
+    ):
+```
+DMX_frame_pipeline.py:
+```bash
+class FramePipeline:
+    """A pipeline that captures frames from a video stream, processes them, 
+    runs YOLO + detection filtering, then tracks objects over time.
+    Additionally, it uses the latest detection's centroid to control a moving head light via DMX."""
+    
+    def __init__(
+        self,
+        capture_device=1,
+        frame_width=1920,
+        frame_height=1080, # Update this resolution.
+        target_width=1920,
+        target_height=1080, # Update this resolution.
+        model_path="drone_detector_12x.pt",
+        confidence_threshold=0.5,
+        detection_processor=None,
+        tracking_system=None
+    ):
+```
+### Testing Different AI Models
+Ensure that the filepaths for the AI model are updated to the desired AI model's filepath:
+
+run.py:
+```bash
+def main():
+    # Configure logging to output messages with timestamp and level.
+    logging.basicConfig(
+        level=logging.INFO, 
+        format="%(asctime)s - %(levelname)s - %(message)s"
+    )
+    
+    try:
+        # Initialize the FramePipeline with required parameters.
+        pipeline = FramePipeline(
+            capture_device=0,
+            frame_width=1920,
+            frame_height=1080,
+            target_width=1920,
+            target_height=1080,
+            model_path="drone_detector_12m.pt", # Update this filepath.
+            confidence_threshold=0.5
+        )
+```
+main.py:
+```bash
+# This method tests the AI model interface by 
+# running inference on a sample image.
+def test_ai_model_interface():
+    """Test the AIModelInterface by 
+    running inference on a sample image."""
+
+    try:
+        # This initializes the AI model interface.
+        ai_interface = AIModelInterface(
+            model_path="drone_detector_12x.pt", # Update this filepath.
+            confidence_threshold=0.5)
+```
+```bash
+# This method tests the detection processor by 
+# running AI on a sample image
+# and then processing the raw detections.
+def test_detection_processor():
+    """ Test the DetectionProcessor by running AI on a sample image
+    and then processing the raw detections."""
+
+    try:
+        # The YOLO model interface is initialized.
+        ai_interface = AIModelInterface(
+            model_path="drone_detector_12x.pt", # Update this filepath.
+            confidence_threshold=0.5)
+```
+```bash
+# This method tests the frame pipeline by 
+# running a continuous video stream at 640x480,
+# processing each frame, and running YOLO detection.
+def test_frame_pipeline():
+    """Test the FramePipeline by 
+    running a continuous video stream at full HD,
+    processing each frame, and running AI detection."""
+
+    try:
+        # The frame pipeline is initialized.
+        pipeline = FramePipeline(
+            capture_device=1, 
+            frame_width=1920, 
+            frame_height=1080, 
+            target_width=1920, 
+            target_height=1080,
+            model_path="drone_detector_12x.pt", # Update this filepath.
+            confidence_threshold=0.5
+        )
+```
+frame_pipeline.py:
+```bash
+# This class serves as a frame pipeline that 
+# captures frames from a video stream,
+# processes them, runs AI + detection filtering, 
+# then tracks objects over time.
+class FramePipeline:
+    """A pipeline that captures frames from a video stream, processes them, 
+    runs YOLO + detection filtering, then tracks objects over time."""
+
+    # This method initializes the frame pipeline.
+    def __init__(
+        self,
+        capture_device=1,
+        frame_width=1920,
+        frame_height=1080,
+        target_width=1920,
+        target_height=1080,
+        model_path="drone_detector_12x.pt", # Update this filepath.
+        confidence_threshold=0.5,
+        detection_processor=None,
+        tracking_system=None
+    ):
+```
+DMX_frame_pipeline.py:
+```bash
+class FramePipeline:
+    """A pipeline that captures frames from a video stream, processes them, 
+    runs YOLO + detection filtering, then tracks objects over time.
+    Additionally, it uses the latest detection's centroid to control a moving head light via DMX."""
+    
+    def __init__(
+        self,
+        capture_device=1,
+        frame_width=1920,
+        frame_height=1080,
+        target_width=1920,
+        target_height=1080,
+        model_path="drone_detector_12x.pt", # Update this filepath.
+        confidence_threshold=0.5,
+        detection_processor=None,
+        tracking_system=None
+    ):
+```
+ai_model_interface.py:
+```bash
+class AIModelInterface:
+    """Interface for the AI model to run inference 
+    and process detections."""
+
+    # This method initializes the AI model interface.
+
+    # The model path is where our trained AI model is stored and
+    # the confidence threshold is the minimum 
+    # confidence score for detections.
+
+    # For this AI model, we expect the confidence score threshold 
+    # to be 0.5 to allow optimal performance.
+    def __init__(
+            self, model_path="drone_detector_12x.pt", # Update this filepath.
+            confidence_threshold=0.5):
+        """
+```
+test_ai.py:
+```bash
+# We create an instance of the trained YOLO model here.
+model = YOLO("..\src\drone_detector_12x.pt") # Update this filepath.
+```
 ## Contributing
 
 1. Fork the repository
