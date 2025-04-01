@@ -7,7 +7,7 @@
 from ultralytics import YOLO
 
 # We create an instance of the trained YOLO model here.
-model = YOLO("..\src\drone_detector_12x.pt")
+model = YOLO("..\src\drone_detector_12n.pt")
 
 # We use the model to infer on a test image here.
 

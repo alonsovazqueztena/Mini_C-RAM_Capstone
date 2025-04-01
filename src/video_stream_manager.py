@@ -70,6 +70,13 @@ class VideoStreamManager:
          # A thread will be used to grab frames from the video stream.
         self.grabber_thread = None
 
+        # # Enable OpenCL if available (check at runtime)
+        # if cv.ocl.haveOpenCL():
+        #     cv.ocl.setUseOpenCL(True)
+        #     logging.info("OpenCL enabled for GPU acceleration.")
+        # else:
+        #     logging.warning("OpenCL not available or disabled.")
+
         # The logging is configured here. 
         
         # Basic info is put in, which includes the time, 
@@ -167,11 +174,6 @@ class VideoStreamManager:
                     "The frame queue is full, dropping a frame."
                     )
 
-            # Sleep for a short time to avoid busy waiting. 
-            time.sleep(
-                0.001
-                )
-
     # This method gets a frame from the video stream and
     # returns it in the program.
     def get_frame(
@@ -193,9 +195,6 @@ class VideoStreamManager:
         try:
             frame = self.frame_queue.get(
                 timeout=0.5)
-            logging.debug(
-                f"Retrieved frame of size: {frame.shape}"
-                )
             return frame
         
         # If the queue is empty, log an error and raise an exception.
@@ -218,7 +217,7 @@ class VideoStreamManager:
         self.stopped = True
         if self.grabber_thread is not None:
             self.grabber_thread.join(
-                timeout=2.0
+                timeout=0.5
                 )
             
         # If the device is opened and detected

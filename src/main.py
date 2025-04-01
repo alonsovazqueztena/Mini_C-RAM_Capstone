@@ -96,7 +96,7 @@ def test_ai_model_interface():
     try:
         # This initializes the AI model interface.
         ai_interface = AIModelInterface(
-            model_path="drone_detector_12x.pt", 
+            model_path="drone_detector_12n.pt", 
             confidence_threshold=0.5)
 
         # A test image is loaded for AI.
@@ -130,7 +130,7 @@ def test_detection_processor():
     try:
         # The YOLO model interface is initialized.
         ai_interface = AIModelInterface(
-            model_path="drone_detector_12x.pt", 
+            model_path="drone_detector_12n.pt", 
             confidence_threshold=0.5)
 
         # The test image is loaded for YOLO.
@@ -180,7 +180,7 @@ def test_frame_pipeline():
             frame_height=1080, 
             target_width=1920, 
             target_height=1080,
-            model_path="drone_detector_12x.pt",
+            model_path="drone_detector_12n.pt",
             confidence_threshold=0.5
         )
 

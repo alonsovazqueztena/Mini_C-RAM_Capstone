@@ -17,7 +17,7 @@ def main():
             frame_height=1080,
             target_width=1920,
             target_height=1080,
-            model_path="drone_detector_12x.pt",
+            model_path="drone_detector_12n.pt",
             confidence_threshold=0.5
         )
         

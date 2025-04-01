@@ -17,6 +17,8 @@ import concurrent.futures
 # an error has occurred or the execution of the class was a success.
 import logging
 
+# import time
+
 # All the classes are imported from the src folder
 # to be used in the frame pipeline class.
 from ai_model_interface import AIModelInterface
@@ -47,7 +49,7 @@ class FramePipeline:
         frame_height=1080,
         target_width=1920,
         target_height=1080,
-        model_path="drone_detector_12x.pt",
+        model_path="drone_detector_12n.pt",
         confidence_threshold=0.5,
         detection_processor=None,
         tracking_system=None
@@ -196,6 +198,9 @@ class FramePipeline:
 
                 # Run as long as frames are available.
                 while True:
+
+                    # start_time = time.time()
+
                     frame = stream.get_frame()
                     if frame is None:
                         logging.warning(
@@ -203,14 +208,19 @@ class FramePipeline:
                             )
                         break
 
+                    # capture_time = time.time()
+
                     # This preprocesses frame for the YOLO model.
                     processed_frame = self.frame_processor.preprocess_frame(
                         frame)
+                    
+                    # process_time = time.time()
                     
                     # This runs the prediction in a separate thread.
                     future = executor.submit(
                         self.ai_model_interface.predict, 
                         processed_frame[0])
+                    # prediction_time = time.time()
 
                     # The results of the prediction are retrieved.
                     raw_detections = future.result()
@@ -219,9 +229,13 @@ class FramePipeline:
                     processed_detections = self.detection_processor.process_detections(
                         raw_detections)
                     
+                    # detection_process_time = time.time()
+                    
                     # This updates the tracking system with the processed detections.
                     tracked_objects = self.tracking_system.update(
                         processed_detections)
+                    
+                    # tracking_time = time.time()
 
                     # This draws the YOLO bounding boxes.
                     self.draw_detections(
@@ -232,11 +246,34 @@ class FramePipeline:
                     self.draw_tracked_objects(
                         frame, tracked_objects
                         )
+                    
+                    # pipeline_time = time.time()
 
                     # This displays the frame with tracking.
                     cv.imshow(
                         "Mini C-RAM View", frame
                         )
+                    
+                    # end_time = time.time()
+
+                    # Calculate latencies
+                    # capture_latency = capture_time - start_time
+                    # process_latency = process_time - capture_time
+                    # prediction_latency = prediction_time - process_time
+                    # detection_process_latency = detection_process_time - prediction_time
+                    # tracking_latency = tracking_time - detection_process_time
+                    # pipeline_latency = pipeline_time - tracking_time
+                    # total_latency = end_time - start_time
+
+                    # # Log the latency values
+                    # logging.info(f"Capture latency: {capture_latency:.6f} sec")
+                    # logging.info(f"Process latency: {process_latency:.6f} sec")
+                    # logging.info(f"Prediction latency: {prediction_latency:.6f} sec")
+                    # logging.info(f"Detection Process latency: {detection_process_latency:.6f} sec")
+                    # logging.info(f"Tracking latency: {tracking_latency:.6f} sec")
+                    # logging.info(f"Pipeline latency: {pipeline_latency:.6f} sec")
+                    # logging.info(f"Total pipeline latency: {total_latency:.6f} sec")
+
 
                     # This handles the button 'q' to quit.
                     if cv.waitKey(1) & 0xFF == ord('q'):
