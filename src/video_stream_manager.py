@@ -1,9 +1,5 @@
-# Alonso Vazquez Tena
-# STG-452: Capstone Project II
-# April 4, 2025
-# I used source code from the following websites:
-# https://chatgpt.com/share/67a05526-d4d8-800e-8e0d-67b03ca451a8 (basic functionality),
-# https://chatgpt.com/share/67d77b29-c824-800e-ab25-2cc850596046 (improvements)
+# Alonso Vazquez Tena | STG-452: Capstone Project II | April 4, 2025
+# Source: https://chatgpt.com/share/67a05526-d4d8-800e-8e0d-67b03ca451a8, https://chatgpt.com/share/67d77b29-c824-800e-ab25-2cc850596046
 
 import queue # For managing thread-safe frame queues
 import threading # For running video stream operations in separate threads.
@@ -12,7 +8,7 @@ import cv2 as cv # For computer vision using OpenCV
 class VideoStreamManager:
     """Manages video stream capture and processing."""
 
-    def __init__(self, capture_device=0, max_queue_size=10):
+    def __init__(self, capture_device=1, max_queue_size=10):
         """Initialize with capture device index and frame queue size."""
         self.capture_device = capture_device
         self.capture = None
