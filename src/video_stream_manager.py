@@ -1,9 +1,5 @@
-# Alonso Vazquez Tena
-# STG-452: Capstone Project II
-# April 4, 2025
-# I used source code from the following websites:
-# https://chatgpt.com/share/67a05526-d4d8-800e-8e0d-67b03ca451a8 (basic functionality),
-# https://chatgpt.com/share/67d77b29-c824-800e-ab25-2cc850596046 (improvements)
+# Alonso Vazquez Tena | STG-452: Capstone Project II | April 4, 2025
+# Source: https://chatgpt.com/share/67a05526-d4d8-800e-8e0d-67b03ca451a8, https://chatgpt.com/share/67d77b29-c824-800e-ab25-2cc850596046
 
 import queue # For managing thread-safe frame queues
 import threading # For running video stream operations in separate threads.

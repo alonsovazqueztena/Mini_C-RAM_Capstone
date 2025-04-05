@@ -17,7 +17,7 @@ import concurrent.futures
 # an error has occurred or the execution of the class was a success.
 import logging
 
-# import time
+import time
 
 # All the classes are imported from the src folder
 # to be used in the frame pipeline class.
@@ -175,7 +175,7 @@ class FramePipeline:
                 # Run as long as frames are available.
                 while True:
 
-                    # start_time = time.time()
+                    start_time = time.time()
 
                     frame = stream.get_frame()
                     if frame is None:
@@ -184,13 +184,13 @@ class FramePipeline:
                             )
                         break
 
-                    # capture_time = time.time()
+                    capture_time = time.time()
                     
                     # This runs the prediction in a separate thread.
                     future = executor.submit(
                         self.ai_model_interface.predict, 
                         frame)
-                    # prediction_time = time.time()
+                    prediction_time = time.time()
 
                     # The results of the prediction are retrieved.
                     raw_detections = future.result()
@@ -199,13 +199,13 @@ class FramePipeline:
                     processed_detections = self.detection_processor.process_detections(
                         raw_detections)
                     
-                    # detection_process_time = time.time()
+                    detection_process_time = time.time()
                     
                     # This updates the tracking system with the processed detections.
                     tracked_objects = self.tracking_system.update(
                         processed_detections)
                     
-                    # tracking_time = time.time()
+                    tracking_time = time.time()
 
                     # This draws the YOLO bounding boxes.
                     self.draw_detections(
@@ -217,30 +217,30 @@ class FramePipeline:
                         frame, tracked_objects
                         )
                     
-                    # pipeline_time = time.time()
+                    pipeline_time = time.time()
 
                     # This displays the frame with tracking.
                     cv.imshow(
                         "AIegis Beam View", frame
                         )
                     
-                    # end_time = time.time()
+                    end_time = time.time()
 
-                    # # Calculate latencies
-                    # capture_latency = capture_time - start_time
-                    # prediction_latency = prediction_time - capture_time
-                    # detection_process_latency = detection_process_time - prediction_time
-                    # tracking_latency = tracking_time - detection_process_time
-                    # pipeline_latency = pipeline_time - tracking_time
-                    # total_latency = end_time - start_time
+                    # Calculate latencies
+                    capture_latency = capture_time - start_time
+                    prediction_latency = prediction_time - capture_time
+                    detection_process_latency = detection_process_time - prediction_time
+                    tracking_latency = tracking_time - detection_process_time
+                    pipeline_latency = pipeline_time - tracking_time
+                    total_latency = end_time - start_time
 
-                    # # Log the latency values
-                    # logging.info(f"Capture latency: {capture_latency:.6f} sec")
-                    # logging.info(f"Prediction latency: {prediction_latency:.6f} sec")
-                    # logging.info(f"Detection Process latency: {detection_process_latency:.6f} sec")
-                    # logging.info(f"Tracking latency: {tracking_latency:.6f} sec")
-                    # logging.info(f"Pipeline latency: {pipeline_latency:.6f} sec")
-                    # logging.info(f"Total pipeline latency: {total_latency:.6f} sec")
+                    # Log the latency values
+                    logging.info(f"Capture latency: {capture_latency:.6f} sec")
+                    logging.info(f"Prediction latency: {prediction_latency:.6f} sec")
+                    logging.info(f"Detection Process latency: {detection_process_latency:.6f} sec")
+                    logging.info(f"Tracking latency: {tracking_latency:.6f} sec")
+                    logging.info(f"Pipeline latency: {pipeline_latency:.6f} sec")
+                    logging.info(f"Total pipeline latency: {total_latency:.6f} sec")
 
 
                     # This handles the button 'q' to quit.
