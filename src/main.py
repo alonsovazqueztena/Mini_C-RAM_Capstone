@@ -18,9 +18,7 @@ import cv2 as cv
 # All the classes are imported from the src folder
 # to be used in the frame pipeline class.
 from ai_model_interface import AIModelInterface
-from detection_processor import DetectionProcessor
 from frame_pipeline import FramePipeline
-# from frame_processor import FrameProcessor
 from tracking_system import TrackingSystem
 from video_stream_manager import VideoStreamManager
 
@@ -32,74 +30,21 @@ def test_ai_model_interface():
 
     try:
         # This initializes the AI model interface.
-        ai_interface = AIModelInterface(
-            model_path="drone_detector_12n.pt", 
-            confidence_threshold=0.5)
+        ai_interface = AIModelInterface()
 
         # A test image is loaded for AI.
-        test_img = cv.imread(
-            "../test_images/drone_mock_test_1.jpg")
+        test_img = cv.imread("../test_images/drone_mock_test_1.jpg")
         
         # If the test image is empty or cannot be found, an error is raised.
         if test_img is None:
-            raise ValueError(
-                "Failed to load test image for AI. Provide a valid image path."
-                )
+            raise ValueError("Failed to load test image for AI. Provide a valid image path.")
 
         # This runs inference on the test image.
-        ai_interface.predict(
-            test_img
-            )
+        ai_interface.predict(test_img)
         
     # If an exception is raised, the error is logged.
     except Exception as e:
-        logging.error(
-            f"AIModelInterface test failed: {e}"
-            )
-
-# This method tests the detection processor by 
-# running AI on a sample image
-# and then processing the raw detections.
-def test_detection_processor():
-    """ Test the DetectionProcessor by running AI on a sample image
-    and then processing the raw detections."""
-
-    try:
-        # The YOLO model interface is initialized.
-        ai_interface = AIModelInterface(
-            model_path="drone_detector_12n.pt", 
-            confidence_threshold=0.5)
-
-        # The test image is loaded for YOLO.
-        test_img = cv.imread(
-            "../test_images/drone_mock_test_2.jpg")
-        
-        # If the test image is empty or cannot be found, an error is raised.
-        if test_img is None:
-            raise ValueError(
-                "Failed to load test image for AI. Provide a valid image path."
-                )
-
-        # This runs inference on the test image.
-        raw_detections = ai_interface.predict(
-            test_img
-            )
-
-        # The detection processor is initialized.
-        detection_processor = DetectionProcessor(
-            target_classes=None
-            )
-
-        # The raw detections are processed.
-        detection_processor.process_detections(
-            raw_detections
-            )
-        
-    # If an exception is raised, the error is logged.
-    except Exception as e:
-        logging.error(
-            f"DetectionProcessor test failed: {e}"
-            )
+        logging.error(f"AIModelInterface test failed: {e}")
 
 # This method tests the frame pipeline by 
 # running a continuous video stream at 640x480,
@@ -111,10 +56,7 @@ def test_frame_pipeline():
 
     try:
         # The frame pipeline is initialized.
-        pipeline = FramePipeline(
-            model_path="drone_detector_12n.pt",
-            confidence_threshold=0.5
-        )
+        pipeline = FramePipeline()
 
         # The frame pipeline is run and stops when the user quits.
         pipeline.run()
@@ -138,9 +80,6 @@ def main():
 
     # This tests the AIModelInterface (model loading and inference).
     test_ai_model_interface()
-
-    # This tests the DetectionProcessor (filter & add centroids).
-    test_detection_processor()
 
     # This tests the FramePipeline 
     # (all modules tested together).

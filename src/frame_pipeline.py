@@ -22,7 +22,6 @@ import time
 # All the classes are imported from the src folder
 # to be used in the frame pipeline class.
 from ai_model_interface import AIModelInterface
-from detection_processor import DetectionProcessor
 from tracking_system import TrackingSystem
 from video_stream_manager import VideoStreamManager
 
@@ -43,9 +42,6 @@ class FramePipeline:
     # This method initializes the frame pipeline.
     def __init__(
         self,
-        model_path="drone_detector_12n.pt",
-        confidence_threshold=0.5,
-        detection_processor=None,
         tracking_system=None
     ):
         """Initialize the frame pipeline.
@@ -64,16 +60,7 @@ class FramePipeline:
         self.video_stream = VideoStreamManager()
 
         # Set up the AI model interface.
-        self.ai_model_interface = AIModelInterface(
-            model_path=model_path,
-            confidence_threshold=confidence_threshold
-        )
-
-        # Use a provided detection processor or create 
-        # one with default parameters.
-        self.detection_processor = detection_processor or DetectionProcessor(
-            target_classes=None
-        )
+        self.ai_model_interface = AIModelInterface()
 
         # Use a provided tracking system or create one 
         # with default parameters.
@@ -193,24 +180,17 @@ class FramePipeline:
                     prediction_time = time.time()
 
                     # The results of the prediction are retrieved.
-                    raw_detections = future.result()
-                    
-                    # This filters detections and adds centroids.
-                    processed_detections = self.detection_processor.process_detections(
-                        raw_detections)
+                    detections = future.result()
                     
                     detection_process_time = time.time()
                     
                     # This updates the tracking system with the processed detections.
-                    tracked_objects = self.tracking_system.update(
-                        processed_detections)
+                    tracked_objects = self.tracking_system.update(detections)
                     
                     tracking_time = time.time()
 
                     # This draws the YOLO bounding boxes.
-                    self.draw_detections(
-                        frame, processed_detections
-                        )
+                    self.draw_detections(frame, detections)
 
                     # This draws tracked objects.
                     self.draw_tracked_objects(
