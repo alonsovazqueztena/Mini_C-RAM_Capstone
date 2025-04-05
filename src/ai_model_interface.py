@@ -1,20 +1,36 @@
 # Alonso Vazquez Tena | STG-452: Capstone Project II | April 4, 2025
 # Source: https://chatgpt.com/share/67a05526-d4d8-800e-8e0d-67b03ca451a8
-
-from ultralytics import YOLO # YOLO model for object detection.
-import torch # Allow for Nvidia GPU leveraging.
+# Daniel Saravia Source: https://grok.com/share/bGVnYWN5_52adc247-cde4-41e4-80bd-c70ef0c81dc9
+from ultralytics import YOLO
+import torch
 
 class AIModelInterface:
-    """Interface for AI model inference and detection."""
+    """Optimized interface for YOLO drone detection."""
 
-    def __init__(self, model_path="drone_detector_12n.pt", confidence_threshold=0.5, target_classes=None):
-        """Initalize with model path and confidence threshold."""
-        self.model = YOLO(model_path) # Load YOLO model.
-        self.confidence_threshold = confidence_threshold # Set minimum confidence for detections.
-        self.target_classes = target_classes if target_classes is not None else ["drone"] # Set target classes.
+    def __init__(self, model_path="drone_detector_12n.pt", confidence_threshold=0.5):
+        """Initialize YOLO model with minimal setup."""
+        self.model = YOLO(model_path)
+        self.confidence_threshold = confidence_threshold
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
 
     def predict(self, frame):
-        """Runs inference on frame and extract detections."""
-        results = self.model.predict(source=frame, imgsz=640, conf=self.confidence_threshold, half=True, device="cuda" if torch.cuda.is_available() else "cpu", verbose=False) # Run inference.
-        detections = [{"bbox": box.xyxy[0].tolist(), "confidence": box.conf[0].item(), "class_id": int(box.cls[0].item()), "label": self.model.names[int(box.cls[0].item())]} for result in results if result.boxes is not None for box in result.boxes] # Extract detection details (bbox, confidence, class, label).
-        return [{"bbox": det["bbox"], "confidence": det["confidence"], "class_id": det["class_id"], "label": det["label"], "centroid": ((det["bbox"][0] + det["bbox"][2]) / 2, (det["bbox"][1] + det["bbox"][3]) / 2)} for det in detections if not self.target_classes or det["label"] in self.target_classes] # Filter by target classes and add centroids.
+        """Run inference and return minimal detection data."""
+        results = self.model.predict(
+            source=frame,
+            imgsz=640,
+            conf=self.confidence_threshold,
+            half=True,
+            device=self.device,
+            verbose=False
+        )
+        detections = []
+        for result in results:
+            if result.boxes is None:
+                continue
+            for box in result.boxes:
+                if self.model.names[int(box.cls[0])] != "drone":
+                    continue
+                bbox = box.xyxy[0].tolist()
+                centroid = ((bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2)
+                detections.append({"bbox": bbox, "centroid": centroid})
+        return detections
