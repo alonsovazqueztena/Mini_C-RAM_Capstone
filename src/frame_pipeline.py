@@ -23,7 +23,6 @@ import logging
 # to be used in the frame pipeline class.
 from ai_model_interface import AIModelInterface
 from detection_processor import DetectionProcessor
-from frame_processor import FrameProcessor
 from tracking_system import TrackingSystem
 from video_stream_manager import VideoStreamManager
 
@@ -44,11 +43,6 @@ class FramePipeline:
     # This method initializes the frame pipeline.
     def __init__(
         self,
-        capture_device=1,
-        frame_width=1920,
-        frame_height=1080,
-        target_width=1920,
-        target_height=1080,
         model_path="drone_detector_12n.pt",
         confidence_threshold=0.5,
         detection_processor=None,
@@ -58,8 +52,6 @@ class FramePipeline:
 
         Keyword arguments:
         self -- instance of the frame pipeline,
-        frame_width -- width of the video frame,
-        frame_height -- height of the video frame,
         target_width -- target width for a preprocessed frame,
         target_height -- target height for a preprocessed frame,
         model_path -- path to the AI model file,
@@ -69,17 +61,7 @@ class FramePipeline:
         tracking_system -- instance of TrackingSystem to track objects.
         """
         # Set up the video stream manager.
-        self.video_stream = VideoStreamManager(
-            capture_device=capture_device, 
-            frame_width=frame_width, 
-            frame_height=frame_height
-        )
-
-        # Set up the frame processor.
-        self.frame_processor = FrameProcessor(
-            target_width=target_width, 
-            target_height=target_height
-        )
+        self.video_stream = VideoStreamManager()
 
         # Set up the AI model interface.
         self.ai_model_interface = AIModelInterface(
@@ -186,15 +168,9 @@ class FramePipeline:
 
                 # The window is to be small enough for the user to
                 # see and is meant to automatically popup.
-                cv.namedWindow(
-                    "Mini C-RAM View", 
-                    cv.WINDOW_NORMAL)
-                cv.resizeWindow(
-                    "Mini C-RAM View", 
-                    800, 600)
-                cv.setWindowProperty(
-                    "Mini C-RAM View", 
-                    cv.WND_PROP_TOPMOST, 1)
+                cv.namedWindow("AIegis Beam View", cv.WINDOW_NORMAL)
+                cv.resizeWindow("AIegis Beam View", 800, 600)
+                cv.setWindowProperty("AIegis Beam View", cv.WND_PROP_TOPMOST, 1)
 
                 # Run as long as frames are available.
                 while True:
@@ -209,17 +185,11 @@ class FramePipeline:
                         break
 
                     # capture_time = time.time()
-
-                    # This preprocesses frame for the YOLO model.
-                    processed_frame = self.frame_processor.preprocess_frame(
-                        frame)
-                    
-                    # process_time = time.time()
                     
                     # This runs the prediction in a separate thread.
                     future = executor.submit(
                         self.ai_model_interface.predict, 
-                        processed_frame[0])
+                        frame)
                     # prediction_time = time.time()
 
                     # The results of the prediction are retrieved.
@@ -251,15 +221,14 @@ class FramePipeline:
 
                     # This displays the frame with tracking.
                     cv.imshow(
-                        "Mini C-RAM View", frame
+                        "AIegis Beam View", frame
                         )
                     
                     # end_time = time.time()
 
-                    # Calculate latencies
+                    # # Calculate latencies
                     # capture_latency = capture_time - start_time
-                    # process_latency = process_time - capture_time
-                    # prediction_latency = prediction_time - process_time
+                    # prediction_latency = prediction_time - capture_time
                     # detection_process_latency = detection_process_time - prediction_time
                     # tracking_latency = tracking_time - detection_process_time
                     # pipeline_latency = pipeline_time - tracking_time
@@ -267,7 +236,6 @@ class FramePipeline:
 
                     # # Log the latency values
                     # logging.info(f"Capture latency: {capture_latency:.6f} sec")
-                    # logging.info(f"Process latency: {process_latency:.6f} sec")
                     # logging.info(f"Prediction latency: {prediction_latency:.6f} sec")
                     # logging.info(f"Detection Process latency: {detection_process_latency:.6f} sec")
                     # logging.info(f"Tracking latency: {tracking_latency:.6f} sec")

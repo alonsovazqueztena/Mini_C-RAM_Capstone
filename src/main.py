@@ -20,72 +20,9 @@ import cv2 as cv
 from ai_model_interface import AIModelInterface
 from detection_processor import DetectionProcessor
 from frame_pipeline import FramePipeline
-from frame_processor import FrameProcessor
+# from frame_processor import FrameProcessor
 from tracking_system import TrackingSystem
 from video_stream_manager import VideoStreamManager
-
-# This method tests the video stream manager 
-# by attempting to capture a single frame.
-def test_video_stream_manager():
-    """Test the VideoStreamManager by attempting 
-    to capture a single frame."""
-
-    try:
-        # This initializes the video stream manager.
-        video_stream = VideoStreamManager(
-            capture_device=1, frame_width=1920, 
-            frame_height=1080)
-        
-        # This captures a single frame.
-        with video_stream as stream:
-            frame = stream.get_frame()
-
-            # If the frame is empty, an error is raised.
-            if frame is None:
-                raise RuntimeError(
-                    "Failed to capture frame in VideoStreamManager test."
-                    )
-            
-    # If an exception is raised, the error is logged.
-    except Exception as e:
-        logging.error(
-            f"VideoStreamManager test failed: {e}"
-            )
-
-# This method tests the frame processor by processing a dummy image.
-def test_frame_processor():
-    """Test the FrameProcessor by processing a dummy image."""
-
-    try:
-        # This initializes the frame processor.
-        processor = FrameProcessor(
-            target_width=1920, target_height=1080)
-
-        # This loads a dummy frame for testing.
-        dummy_frame = cv.imread(
-            "../test_images/drone_mock_test_1.jpg")
-        
-        # If the dummy frame is empty or cannot be found, an error is raised.
-        if dummy_frame is None:
-            raise ValueError(
-                "Failed to load test image. Provide a valid image path."
-                )
-
-        # This preprocesses the dummy frame.
-        processed_frame = processor.preprocess_frame(
-            dummy_frame)
-        
-        # If the processed frame is empty, an error is raised.
-        if processed_frame is None or processed_frame.size == 0:
-            raise RuntimeError(
-                "Preprocessed frame is None or empty."
-                )
-        
-    # If an exception is raised, the error is logged.
-    except Exception as e:
-        logging.error(
-            f"FrameProcessor test failed: {e}"
-            )
 
 # This method tests the AI model interface by 
 # running inference on a sample image.
@@ -175,11 +112,6 @@ def test_frame_pipeline():
     try:
         # The frame pipeline is initialized.
         pipeline = FramePipeline(
-            capture_device=1, 
-            frame_width=1920, 
-            frame_height=1080, 
-            target_width=1920, 
-            target_height=1080,
             model_path="drone_detector_12n.pt",
             confidence_threshold=0.5
         )
@@ -203,12 +135,6 @@ def main():
         level=logging.INFO, 
         format="%(asctime)s - %(levelname)s - %(message)s"
         )
-
-    # This tests the VideoStreamManager (basic frame capture).
-    test_video_stream_manager()
-
-    # This tests the FrameProcessor (image preprocessing).
-    test_frame_processor()
 
     # This tests the AIModelInterface (model loading and inference).
     test_ai_model_interface()
