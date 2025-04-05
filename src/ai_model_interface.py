@@ -1,6 +1,7 @@
 # Alonso Vazquez Tena | STG-452: Capstone Project II | April 4, 2025
 # Source: https://chatgpt.com/share/67a05526-d4d8-800e-8e0d-67b03ca451a8
 # Daniel Saravia Source: https://grok.com/share/bGVnYWN5_52adc247-cde4-41e4-80bd-c70ef0c81dc9
+# ai_model_interface.py
 from ultralytics import YOLO
 import torch
 

@@ -1,23 +1,19 @@
 # Daniel Saravia Source: https://grok.com/share/bGVnYWN5_52adc247-cde4-41e4-80bd-c70ef0c81dc9
-import concurrent.futures
-import cv2 as cv
+# DMX_frame_pipeline.py
 import socket
+import concurrent
 import websocket
+import cv2 as cv
+from frame_pipeline import FramePipeline
 
-from ai_model_interface import AIModelInterface
-from tracking_system import TrackingSystem
-from video_stream_manager import VideoStreamManager
-
-class FramePipeline:
-    """Ultra-slim pipeline for drone tracking and DMX control."""
+class DMXFramePipeline(FramePipeline):
+    """Extends FramePipeline with DMX control for drone tracking."""
 
     def __init__(self, model_path="drone_detector_12n.pt", confidence_threshold=0.5):
-        """Initialize with minimal components."""
-        self.video_stream = VideoStreamManager()
-        self.ai_model = AIModelInterface(model_path, confidence_threshold)
-        self.tracking = TrackingSystem(max_disappeared=50, max_distance=50)
+        """Initialize base pipeline and add DMX-specific setup."""
+        super().__init__(model_path, confidence_threshold)  # Inherit video, AI, tracking
 
-        # DMX setup.
+        # DMX setup
         self.pan = 0.0
         self.tilt = 0.0
         self.k_pan = 0.005
@@ -42,12 +38,12 @@ class FramePipeline:
         if self.ws:
             self.ws.send(f"CH|{channel}|{int(value)}")
 
-    def draw(self, frame, detections, tracked):
-        """Minimal drawing for speed."""
+    def draw(self, frame, detections, tracked_objects):
+        """Minimal drawing for speed (overrides base draw)."""
         for det in detections:
             x_min, y_min, x_max, y_max = map(int, det["bbox"])
             cv.rectangle(frame, (x_min, y_min), (x_max, y_max), (0, 255, 0), 1)
-        for obj in tracked.values():
+        for obj in tracked_objects.values():
             cx, cy = map(int, obj["centroid"])
             cv.circle(frame, (cx, cy), 2, (0, 255, 0), -1)
 
@@ -67,29 +63,26 @@ class FramePipeline:
         self.send_dmx(3, (self.tilt / 205.0) * 255.0)
 
     def run(self):
-        """Run with maximum efficiency."""
-        with self.video_stream as stream, concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-            cv.namedWindow("View", cv.WINDOW_NORMAL)
-            cv.resizeWindow("View", 640, 480)
-
-            while True:
-                frame = stream.get_frame()
-                if frame is None:
-                    break
-
-                future = executor.submit(self.ai_model.predict, frame)
-                detections = future.result()
-                tracked = self.tracking.update(detections)
-
-                self.draw(frame, detections, tracked)
-                if detections:
-                    self.update_dmx(detections[-1]["centroid"], frame)
-
-                cv.imshow("View", frame)
-                if cv.waitKey(1) & 0xFF == ord('q'):
-                    break
-
-        self.video_stream.release_stream()
-        cv.destroyAllWindows()
-        if self.ws:
-            self.ws.close()
+        """Run with DMX control and optimized settings."""
+        try:
+            with self.video_stream as stream, concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                cv.namedWindow("View", cv.WINDOW_NORMAL)
+                cv.resizeWindow("View", 640, 480)
+                while True:
+                    frame = stream.get_frame()
+                    if frame is None:
+                        break
+                    future = executor.submit(self.ai_model_interface.predict, frame)
+                    detections = future.result()
+                    tracked_objects = self.tracking_system.update(detections)
+                    self.draw(frame, detections, tracked_objects)
+                    if detections:
+                        self.update_dmx(detections[-1]["centroid"], frame)
+                    cv.imshow("View", frame)
+                    if cv.waitKey(1) & 0xFF == ord('q'):
+                        break
+        finally:
+            self.video_stream.release_stream()
+            cv.destroyAllWindows()
+            if self.ws:
+                self.ws.close()
