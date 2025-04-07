@@ -77,7 +77,7 @@ def dmx_to_xyz(dmx_pan, dmx_tilt):
     return beam_global
 
 # --- Visualization Setup ---
-# Create a grid of DMX values for channels 1 and 3 (for the background field)
+# Create a grid of DMX values for channels 1 and 3 (background field)
 dmx_values = np.linspace(0, 255, num=50)
 pan_grid, tilt_grid = np.meshgrid(dmx_values, dmx_values)
 x_grid = np.empty_like(pan_grid)
@@ -91,58 +91,76 @@ for i in range(pan_grid.shape[0]):
         y_grid[i, j] = vec[1]
         z_grid[i, j] = vec[2]
 
-# Compute the reference great circle path (with tilt = 0)
-t_vals = np.linspace(0, 2*np.pi, 200)
-x_path = -np.sin(t_vals)
-y_path = np.cos(t_vals)
-z_path = np.zeros_like(t_vals)
-
 # Set up the interactive 3D plot
 plt.ion()  # Interactive mode on
-fig = plt.figure(figsize=(8,6))
+fig = plt.figure(figsize=(10,8))
 ax = fig.add_subplot(111, projection='3d')
 scatter = ax.scatter(x_grid, y_grid, z_grid, c=tilt_grid, cmap='viridis', s=10, alpha=0.3)
-ax.plot(x_path, y_path, z_path, c='red', lw=2, label="Great Circle Path")
 
-# Animated marker for current beam direction (dot)
+# --- Compute and Plot Reference Lissajous Scanning Path ---
+# Pan will vary between 0° and 540° (centered at 270° with amplitude 270°).
+# Tilt is limited to DMX values <= 128, so max tilt is:
+max_dmx_tilt = 128
+max_tilt_deg = (max_dmx_tilt / 255.0) * 205.0  # ≈102.5°
+T_pan = 10    # period for pan sweep (seconds)
+T_tilt = 15   # period for tilt oscillation (seconds)
+
+# Build a reference path over a 30-second interval.
+t_ref = np.linspace(0, 30, 300)
+lissajous_path = []
+for t in t_ref:
+    # Standard pan equation:
+    pan_deg = 270 + 270 * np.sin(2 * np.pi * t / T_pan)
+    # For tilt, use a biased function so the beam spends more time at lower values.
+    raw_tilt = np.sin(2 * np.pi * t / T_tilt + np.pi/2)  # in [-1,1]
+    normalized = (raw_tilt + 1) / 2  # now in [0,1]
+    biased = normalized**2  # exponent >1 biases toward lower values
+    tilt_deg = biased * max_tilt_deg  # tilt_deg will be in [0, max_tilt_deg]
+    
+    # Map angles to DMX values
+    dmx_pan = (pan_deg / 540) * 255
+    dmx_tilt = (tilt_deg / 205) * 255  # will be <= 128
+    vec = dmx_to_xyz(dmx_pan, dmx_tilt)
+    lissajous_path.append(vec)
+lissajous_path = np.array(lissajous_path)
+ax.plot(lissajous_path[:,0], lissajous_path[:,1], lissajous_path[:,2],
+        c='blue', lw=2, label="Lissajous Path (Tilt Limited & Biased)")
+
+# Animated marker for current beam direction
 beam_marker, = ax.plot([], [], [], 'ko', markersize=8, label="Current Beam")
 
 ax.set_xlabel('X')
 ax.set_ylabel('Y')
 ax.set_zlabel('Z')
-ax.set_title("LED Moving Head Light DMX Mapping\nwith Great Circle Scan & Light Cone")
+ax.set_title("LED Moving Head Light DMX Mapping\nwith Biased Lissajous Scan & Light Cone")
 ax.legend()
 plt.draw()
 
 # Initialize cone surface handle
 cone_surface = None
 
-# --- Automatic Movement along the Great Circle ---
-# We let tilt remain fixed at 0, and let pan vary (oscillate) between 0° and 360°.
-# DMX mapping: pan_DMx = (desired_pan_deg/540)*255.
-t_deg = 0
-direction = 1   # 1 for increasing, -1 for decreasing
-step = 2        # degrees per iteration
-
 # Light cone parameters
 cone_length = 1.2           # Length of the cone (from the origin)
 cone_half_angle = np.deg2rad(15)  # Half-angle of the cone (in radians)
 
+# --- Automatic Movement using Biased Lissajous Pattern ---
+start_time = time.time()
 try:
     while True:
-        # Update pan angle in degrees (oscillatory motion)
-        t_deg += direction * step
-        if t_deg >= 360:
-            t_deg = 360
-            direction = -1
-        elif t_deg <= 0:
-            t_deg = 0
-            direction = 1
-
-        # Compute DMX values: using tilt=0 for the horizontal great circle
-        dmx_pan = (t_deg / 540) * 255   # Map desired pan to DMX value
-        dmx_tilt = 0
-
+        t = time.time() - start_time
+        
+        # Lissajous equations:
+        pan_deg = 270 + 270 * np.sin(2 * np.pi * t / T_pan)
+        # Compute tilt using the biased function:
+        raw_tilt = np.sin(2 * np.pi * t / T_tilt + np.pi/2)  # in [-1,1]
+        normalized = (raw_tilt + 1) / 2  # map to [0,1]
+        biased = normalized**2         # squaring biases the value toward 0 (more time "down")
+        tilt_deg = biased * max_tilt_deg  # tilt in degrees (max ≈102.5°)
+        
+        # Map the computed angles to DMX values:
+        dmx_pan = (pan_deg / 540) * 255
+        dmx_tilt = (tilt_deg / 205) * 255  # This value will be <= 128
+        
         # Send DMX commands to QLC+ (channel 1: pan, channel 3: tilt)
         send_dmx_value(1, dmx_pan)
         send_dmx_value(3, dmx_tilt)
@@ -151,15 +169,14 @@ try:
         beam_dir = dmx_to_xyz(dmx_pan, dmx_tilt)
         beam_marker.set_data([beam_dir[0]], [beam_dir[1]])
         beam_marker.set_3d_properties([beam_dir[2]])
-
-        # --- Compute and plot the light cone ---
-        # Remove previous cone if it exists
+        
+        # --- Compute and Plot the Light Cone ---
+        # Remove the previous cone if it exists
         if cone_surface is not None:
             cone_surface.remove()
         
-        # To create a cone from the origin along beam_dir, first build an orthonormal basis.
+        # Build an orthonormal basis for the current beam direction
         axis = beam_dir
-        # Choose an arbitrary vector not collinear with axis
         if abs(axis[2]) < 0.99:
             ref_vec = np.array([0, 0, 1])
         else:
@@ -168,8 +185,8 @@ try:
         u = u / np.linalg.norm(u)
         v = np.cross(axis, u)
         
-        # Create cone mesh in (z,phi) coordinates
-        z_vals = np.linspace(0, cone_length, 20)  # distance along the cone
+        # Create cone mesh in (z, phi) coordinates
+        z_vals = np.linspace(0, cone_length, 20)  # distances along the cone
         phi_vals = np.linspace(0, 2*np.pi, 30)
         Z_mesh, Phi_mesh = np.meshgrid(z_vals, phi_vals)
         R_mesh = Z_mesh * np.tan(cone_half_angle)
@@ -179,15 +196,16 @@ try:
         Y_cone = Z_mesh * axis[1] + R_mesh * (np.cos(Phi_mesh)*u[1] + np.sin(Phi_mesh)*v[1])
         Z_cone = Z_mesh * axis[2] + R_mesh * (np.cos(Phi_mesh)*u[2] + np.sin(Phi_mesh)*v[2])
         
-        cone_surface = ax.plot_surface(X_cone, Y_cone, Z_cone, alpha=0.3, color='yellow', rstride=1, cstride=1)
+        cone_surface = ax.plot_surface(X_cone, Y_cone, Z_cone,
+                                       alpha=0.3, color='yellow', rstride=1, cstride=1)
         
         plt.draw()
         plt.pause(0.01)
         time.sleep(0.05)  # adjust for update rate
-
+        
 except KeyboardInterrupt:
     print("Movement interrupted by user.")
-
+    
 finally:
     ws.close()
     print("WebSocket closed.")
