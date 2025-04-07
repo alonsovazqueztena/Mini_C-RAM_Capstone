@@ -6,17 +6,15 @@ from DMX_frame_pipeline import DMXFramePipeline  # Updated import
 def main():
     # Configure logging with timestamps and log levels.
     logging.basicConfig(
-        level=logging.INFO,
+        level=logging.DEBUG,  # Changed to DEBUG to show all log messages.
         format="%(asctime)s - %(levelname)s - %(message)s"
     )
 
     try:
-        # Initialize the DMXFramePipeline with the updated parameters.
         pipeline = DMXFramePipeline(
             model_path="drone_detector_12x.pt",
             confidence_threshold=0.5
         )
-        # Run the pipeline continuously.
         pipeline.run()
 
     except Exception as e:
