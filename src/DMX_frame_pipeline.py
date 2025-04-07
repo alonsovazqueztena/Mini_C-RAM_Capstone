@@ -238,20 +238,21 @@ class DMXFramePipeline(FramePipeline):
                     if self.state == "MANUAL":
                         cv.putText(frame, "Manual Mode", (10, 30), cv.FONT_HERSHEY_SIMPLEX,
                                    1, (0, 0, 255), 2)
-                        # Check Xbox controller (D-pad) input.
+                        # Check Xbox controller analog stick input.
                         if joystick is not None:
-                            # The D-pad is typically accessed as a "hat".
-                            hat = joystick.get_hat(0)  # Returns (x, y) with values -1, 0, or 1.
-                            # Up/Down: Adjust tilt.
-                            if hat[1] == 1:  # Up pressed.
-                                self.current_tilt = min(self.current_tilt + self.keyboard_increment, 255)
-                            elif hat[1] == -1:  # Down pressed.
-                                self.current_tilt = max(self.current_tilt - self.keyboard_increment, 0)
-                            # Left/Right: Adjust pan.
-                            if hat[0] == 1:  # Right pressed.
-                                self.current_pan = min(self.current_pan + self.keyboard_increment, 255)
-                            elif hat[0] == -1:  # Left pressed.
-                                self.current_pan = max(self.current_pan - self.keyboard_increment, 0)
+                            # Get analog stick values (range: -1.0 to 1.0).
+                            axis_x = joystick.get_axis(0)  # horizontal movement
+                            axis_y = joystick.get_axis(1)  # vertical movement (typically negative when pushed up)
+                            deadzone = 0.2
+                            # Adjust pan (horizontal) if beyond the deadzone.
+                            if abs(axis_x) > deadzone:
+                                # Multiply the axis value by an increment (you can adjust the scaling factor).
+                                self.current_pan += int(self.keyboard_increment * axis_x)
+                                self.current_pan = max(0, min(self.current_pan, 255))
+                            # Adjust tilt (vertical); note we invert axis_y so that pushing up increases tilt.
+                            if abs(axis_y) > deadzone:
+                                self.current_tilt += int(self.keyboard_increment * -axis_y)
+                                self.current_tilt = max(0, min(self.current_tilt, 255))
 
                         self.send_dmx(1, self.current_pan)
                         self.send_dmx(3, self.current_tilt)
