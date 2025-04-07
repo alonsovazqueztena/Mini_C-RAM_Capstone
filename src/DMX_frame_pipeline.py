@@ -8,6 +8,7 @@ from pynput import keyboard
 import logging
 import time
 import numpy as np
+import pygame
 
 from frame_pipeline import FramePipeline
 
@@ -163,6 +164,16 @@ class DMXFramePipeline(FramePipeline):
         """
         self.start_keyboard_listener()
 
+        pygame.init()
+        pygame.joystick.init()
+        joystick = None
+        if pygame.joystick.get_count() > 0:
+            joystick = pygame.joystick.Joystick(0)
+            joystick.init()
+            logging.info(f"Initialized joystick: {joystick.get_name()}")
+        else:
+            logging.warning("No Xbox controller detected. Using keyboard only for manual mode.")
+
         cv.namedWindow("View", cv.WINDOW_NORMAL)
         cv.resizeWindow("View", 640, 480)
 
@@ -185,12 +196,39 @@ class DMXFramePipeline(FramePipeline):
         try:
             with self.video_stream as stream, concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
                 while True:
+                    exit_pipeline = False
+
+                    if joystick is not None:
+                        for event in pygame.event.get():
+                            if event.type == pygame.JOYBUTTONDOWN and event.buttton == 1:
+                                exit_pipeline = True
+                                break
+                    if cv.waitKey(1) & 0xFF == ord('q'):
+                        exit_pipeline = True
+                    if exit_pipeline:
+                        break
                     frame = stream.get_frame()
                     if frame is None:
                         break
 
                     # Run detection.
                     future = executor.submit(self.ai_model_interface.predict, frame)
+                    # Poll for exit events while waiting for inference to complete.
+                    while not future.done():
+                        if cv.waitKey(1) & 0xFF == ord('q'):
+                            exit_pipeline = True
+                            break
+                        if joystick is not None:
+                            for event in pygame.event.get():
+                                if event.type == pygame.JOYBUTTONDOWN and event.button == 1:
+                                    exit_pipeline = True
+                                    break
+                        if exit_pipeline:
+                            break
+                        time.sleep(0.005)  # Short sleep to avoid busy waiting.
+                    if exit_pipeline:
+                        break
+                    
                     detections = future.result()
 
                     # Update state based on detection results.
@@ -200,6 +238,21 @@ class DMXFramePipeline(FramePipeline):
                     if self.state == "MANUAL":
                         cv.putText(frame, "Manual Mode", (10, 30), cv.FONT_HERSHEY_SIMPLEX,
                                    1, (0, 0, 255), 2)
+                        # Check Xbox controller (D-pad) input.
+                        if joystick is not None:
+                            # The D-pad is typically accessed as a "hat".
+                            hat = joystick.get_hat(0)  # Returns (x, y) with values -1, 0, or 1.
+                            # Up/Down: Adjust tilt.
+                            if hat[1] == 1:  # Up pressed.
+                                self.current_tilt = min(self.current_tilt + self.keyboard_increment, 255)
+                            elif hat[1] == -1:  # Down pressed.
+                                self.current_tilt = max(self.current_tilt - self.keyboard_increment, 0)
+                            # Left/Right: Adjust pan.
+                            if hat[0] == 1:  # Right pressed.
+                                self.current_pan = min(self.current_pan + self.keyboard_increment, 255)
+                            elif hat[0] == -1:  # Left pressed.
+                                self.current_pan = max(self.current_pan - self.keyboard_increment, 0)
+
                         self.send_dmx(1, self.current_pan)
                         self.send_dmx(3, self.current_tilt)
                     elif self.state in ("LOCKED", "HOLD"):
@@ -253,6 +306,7 @@ class DMXFramePipeline(FramePipeline):
                 self.ws.close()
             if hasattr(self, 'keyboard_listener'):
                 self.keyboard_listener.stop()
+            pygame.quit()
 
 if __name__ == "__main__":
     # Set logging to INFO for key state transitions and occasional DMX summaries.
