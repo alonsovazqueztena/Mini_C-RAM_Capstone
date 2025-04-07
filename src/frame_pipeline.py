@@ -8,6 +8,7 @@ from ai_model_interface import AIModelInterface
 from tracking_system import TrackingSystem
 from video_stream_manager import VideoStreamManager
 import cv2 as cv
+import pygame
 
 class FramePipeline:
     """Pipeline: captures frames, runs AI detections, tracks objects, displays results."""
@@ -32,25 +33,61 @@ class FramePipeline:
 
     def run(self):
         """Captures frames, runs detection and tracking, then displays results."""
+        pygame.init()
+        pygame.joystick.init()
+        joystick = None
+        if pygame.joystick.get_count() > 0:
+            joystick = pygame.joystick.Joystick(0)
+            joystick.init()
+        else:
+            logging.warning("No joystick detected. Falling back to keyboard control.")
         try:
             with self.video_stream as stream, concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
                 cv.namedWindow("AIegis Beam View", cv.WINDOW_NORMAL)
-                cv.resizeWindow("AIegis Beam View", 800, 600)
+                cv.resizeWindow("AIegis Beam View", 600, 400)
                 cv.setWindowProperty("AIegis Beam View", cv.WND_PROP_TOPMOST, 1)
                 while True:
+                    exit_pipeline = False
+                    if joystick is not None:
+                        for event in pygame.event.get():
+                            if event.type == pygame.JOYBUTTONDOWN:
+                                if event.button == 1:
+                                    exit_pipeline = True
+                                    break
+
+                    if cv.waitKey(1) & 0xFF == ord('q'):
+                        exit_pipeline = True
+                    
+                    if exit_pipeline:
+                        break
+                    
                     frame = stream.get_frame()
                     if frame is None:
                         logging.warning("No frame captured. Exiting the pipeline.")
                         break
                     future = executor.submit(self.ai_model_interface.predict, frame)
+
+                    # Poll for exit events while waiting for inference to complete
+                    while not future.done():
+                        if cv.waitKey(1) & 0xFF == ord('q'):
+                            exit_pipeline = True
+                            break
+                        if joystick is not None:
+                            for event in pygame.event.get():
+                                if event.type == pygame.JOYBUTTONDOWN and event.button == 1:
+                                    exit_pipeline = True
+                                    break
+                    # A short sleep could be added here to avoid busy waiting, e.g.:
+                    # time.sleep(0.005)
+                    if exit_pipeline:
+                        break
                     detections = future.result()
                     tracked_objects = self.tracking_system.update(detections)
                     self.draw(frame, detections, tracked_objects)
                     cv.imshow("AIegis Beam View", frame)
-                    if cv.waitKey(1) & 0xFF == ord('q'):
-                        break
         except Exception as e:
             logging.error(f"Error in FramePipeline run: {e}")
         finally:
             self.video_stream.release_stream()
             cv.destroyAllWindows()
+            pygame.quit()
