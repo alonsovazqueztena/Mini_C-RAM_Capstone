@@ -8,8 +8,6 @@ from pynput import keyboard
 import logging
 import time
 import numpy as np
-import os
-from contextlib import redirect_stdout
 import pygame
 import threading
 
@@ -35,7 +33,7 @@ class DMXFramePipeline(FramePipeline):
 
         # Manual mode DMX values.
         self.manual_mode = False
-        self.keyboard_increment = 3
+        self.keyboard_increment = 5
         self.current_pan = 127  # Starting at midpoint.
         self.current_tilt = 127
 
@@ -180,7 +178,7 @@ class DMXFramePipeline(FramePipeline):
                     axis_x = self.joystick.get_axis(0)
                     axis_y = self.joystick.get_axis(1) 
                     deadzone = 0.2
-                    sensitivity = 0.2
+                    sensitivity = 0.5
                     if abs(axis_x) > deadzone:
                         self.current_pan += int(self.keyboard_increment * axis_x * sensitivity)
                         self.current_pan = max(0, min(self.current_pan, 255))
@@ -189,7 +187,7 @@ class DMXFramePipeline(FramePipeline):
                         self.current_tilt += int(self.keyboard_increment * -axis_y * sensitivity)
                         self.current_tilt = max(0, min(self.current_tilt, 255))
                         self.send_dmx(3, self.current_tilt)
-            time.sleep(0.03)  # Avoid busy waiting.
+            time.sleep(0.01)  # Avoid busy waiting.
     def run(self):
         """
         Run the DMX pipeline using a state machine:
