@@ -13,7 +13,7 @@ def main():
     try:
         # Initialize the DMXFramePipeline with the updated parameters.
         pipeline = DMXFramePipeline(
-            model_path="drone_detector_12n.pt",
+            model_path="drone_detector_12x.pt",
             confidence_threshold=0.5
         )
         # Run the pipeline continuously.

@@ -5,18 +5,23 @@ import concurrent.futures
 import websocket
 import cv2 as cv
 from pynput import keyboard
-from frame_pipeline import FramePipeline
 import logging
+import time
+import numpy as np
+
+from frame_pipeline import FramePipeline
 
 class DMXFramePipeline(FramePipeline):
-    """Extends FramePipeline with DMX control for drone tracking in two modes:
-    automatic (from detection) and manual (using arrow keys via pynput).
+    """
+    Extends FramePipeline with DMX control for drone tracking in two modes:
+      - Manual: Arrow keys update DMX (via pynput).
+      - Automatic/Scanning: If a drone is detected, the beam locks on;
+        if detections are momentarily lost (less than the threshold), the beam holds its last DMX values;
+        otherwise, it follows a predefined scanning path.
     """
 
     def __init__(self, model_path="drone_detector_12n.pt", confidence_threshold=0.5):
-        """Initialize base pipeline and add DMX-specific setup and mode parameters."""
-        super().__init__(model_path, confidence_threshold)  # Inherit video, AI, tracking
-
+        super().__init__(model_path, confidence_threshold)
         # Automatic mode parameters (internal pan/tilt values)
         self.pan = 0.0
         self.tilt = 0.0
@@ -27,8 +32,17 @@ class DMXFramePipeline(FramePipeline):
         # Manual mode parameters (DMX values in the 0–255 range)
         self.manual_mode = False
         self.keyboard_increment = 5
-        self.current_pan = 127   # Start at midpoint.
+        self.current_pan = 127   # Starting at midpoint.
         self.current_tilt = 127
+
+        # Variables for lock-on hysteresis.
+        self.last_detection_time = None      # Time when a detection was last seen.
+        self.lock_loss_threshold = 1.0         # Seconds to wait before switching to scanning.
+        self.last_lock_dmx_pan = None          # Last DMX value sent for pan when locked.
+        self.last_lock_dmx_tilt = None         # Last DMX value sent for tilt when locked.
+        
+        # Timer for scanning when no detection is found.
+        self.scan_start_time = None
 
         self.ws = None
         self.init_dmx()
@@ -64,7 +78,7 @@ class DMXFramePipeline(FramePipeline):
             cv.circle(frame, (cx, cy), 2, (0, 255, 0), -1)
 
     def update_dmx(self, centroid, frame):
-        """Fast DMX update from detections (automatic mode)."""
+        """Fast DMX update from detections (lock-on mode)."""
         h, w = frame.shape[:2]
         error_x = centroid[0] - w / 2
         error_y = centroid[1] - h / 2
@@ -75,9 +89,13 @@ class DMXFramePipeline(FramePipeline):
         self.pan = max(0, min(self.pan - delta_pan, 540))
         self.tilt = max(0, min(self.tilt - delta_tilt, 205))
 
-        # Convert internal pan/tilt to DMX values (0–255)
         dmx_pan = (self.pan / 540.0) * 255.0
         dmx_tilt = (self.tilt / 205.0) * 255.0
+
+        # Store last lock-on DMX values.
+        self.last_lock_dmx_pan = dmx_pan
+        self.last_lock_dmx_tilt = dmx_tilt
+
         self.send_dmx(1, dmx_pan)
         self.send_dmx(3, dmx_tilt)
 
@@ -114,12 +132,12 @@ class DMXFramePipeline(FramePipeline):
 
     def run(self):
         """
-        Run the pipeline with DMX control.
-         - In automatic mode, DMX values are updated from the detection pipeline.
-         - In manual mode, arrow keys update DMX values.
-         - Toggle manual mode using the GUI button.
+        Run the DMX pipeline with two user-selectable modes:
+          - Manual: Arrow keys update DMX.
+          - Automatic/Scanning: If a drone is detected, lock on;
+            if detections are momentarily lost (less than the threshold), continue holding lock;
+            otherwise, follow the predefined scanning path.
         """
-        # Start the keyboard listener.
         self.start_keyboard_listener()
 
         cv.namedWindow("View", cv.WINDOW_NORMAL)
@@ -130,15 +148,14 @@ class DMXFramePipeline(FramePipeline):
             if state:
                 print("Manual Mode: ON")
                 logging.info("Manual Mode enabled.")
-                # Synchronize manual DMX values with current automatic values.
-                # Convert the internal pan/tilt to DMX values.
-                self.current_pan = int((self.pan / 540.0) * 255.0)
-                self.current_tilt = int((self.tilt / 205.0) * 255.0)
                 self.manual_mode = True
             else:
-                print("Manual Mode: OFF (Automatic Mode)")
-                logging.info("Automatic Mode enabled.")
+                print("Manual Mode: OFF (Automatic/Scanning Mode)")
+                logging.info("Automatic/Scanning Mode enabled.")
                 self.manual_mode = False
+                # Reset timers when switching modes.
+                self.scan_start_time = None
+                self.last_detection_time = None
 
         cv.createButton("Manual Mode", toggle_manual_mode, None, cv.QT_CHECKBOX, 0)
 
@@ -149,20 +166,54 @@ class DMXFramePipeline(FramePipeline):
                     if frame is None:
                         break
 
-                    if not self.manual_mode:
-                        # Automatic mode: update DMX values based on detections.
-                        future = executor.submit(self.ai_model_interface.predict, frame)
-                        detections = future.result()
-                        tracked_objects = self.tracking_system.update(detections)
-                        self.draw(frame, detections, tracked_objects)
-                        if detections:
-                            self.update_dmx(detections[-1]["centroid"], frame)
-                    else:
-                        # Manual mode: show overlay and use current manual DMX values.
+                    if self.manual_mode:
+                        # Manual mode: use stored DMX values from keyboard listener.
                         cv.putText(frame, "Manual Mode", (10, 30), cv.FONT_HERSHEY_SIMPLEX,
                                    1, (0, 0, 255), 2)
                         self.send_dmx(1, self.current_pan)
                         self.send_dmx(3, self.current_tilt)
+                    else:
+                        # Automatic/Scanning mode:
+                        future = executor.submit(self.ai_model_interface.predict, frame)
+                        detections = future.result()
+                        if detections:
+                            # Drone detected: lock on.
+                            self.last_detection_time = time.time()
+                            tracked_objects = self.tracking_system.update(detections)
+                            self.draw(frame, detections, tracked_objects)
+                            self.update_dmx(detections[-1]["centroid"], frame)
+                            cv.putText(frame, "Locking On", (10, 30), cv.FONT_HERSHEY_SIMPLEX,
+                                       1, (0, 255, 0), 2)
+                            # Reset scanning timer when lock-on occurs.
+                            self.scan_start_time = None
+                        else:
+                            # No detection available.
+                            # If we were recently locked on and the loss duration is less than threshold,
+                            # continue holding the last lock-on DMX values.
+                            if (self.last_detection_time is not None and 
+                                (time.time() - self.last_detection_time) < self.lock_loss_threshold):
+                                if self.last_lock_dmx_pan is not None and self.last_lock_dmx_tilt is not None:
+                                    self.send_dmx(1, self.last_lock_dmx_pan)
+                                    self.send_dmx(3, self.last_lock_dmx_tilt)
+                                cv.putText(frame, "Locking On (holding)", (10, 30), cv.FONT_HERSHEY_SIMPLEX,
+                                           1, (0, 255, 0), 2)
+                            else:
+                                # Detection lost for longer than threshold, switch to scanning.
+                                if self.scan_start_time is None:
+                                    self.scan_start_time = time.time()
+                                t = time.time() - self.scan_start_time
+                                # Scanning path equations (starting from DMX 0,0):
+                                # Use a slower period: 20 seconds for both pan and tilt.
+                                T_pan = 20.0
+                                pan_deg = 270 * (1 - np.cos(2 * np.pi * t / T_pan))
+                                T_tilt = 20.0
+                                tilt_deg = 102.5 * (((1 - np.cos(2 * np.pi * t / T_tilt)) / 2) ** 2)
+                                dmx_pan = (pan_deg / 540.0) * 255.0
+                                dmx_tilt = (tilt_deg / 205.0) * 255.0
+                                self.send_dmx(1, dmx_pan)
+                                self.send_dmx(3, dmx_tilt)
+                                cv.putText(frame, "Scanning...", (10, 30), cv.FONT_HERSHEY_SIMPLEX,
+                                           1, (255, 0, 0), 2)
 
                     cv.imshow("View", frame)
                     if cv.waitKey(1) & 0xFF == ord('q'):
@@ -175,7 +226,6 @@ class DMXFramePipeline(FramePipeline):
             if hasattr(self, 'keyboard_listener'):
                 self.keyboard_listener.stop()
 
-# For testing purposes, you can run this module directly.
 if __name__ == "__main__":
     logging.basicConfig(
         level=logging.INFO,
