@@ -1,6 +1,5 @@
 # Daniel Saravia Source: https://grok.com/share/bGVnYWN5_52adc247-cde4-41e4-80bd-c70ef0c81dc9
 # DMX_frame_pipeline.py
-# DMX_frame_pipeline.py
 import socket
 import concurrent.futures
 import websocket
@@ -20,7 +19,7 @@ from frame_pipeline import FramePipeline
 class DMXFramePipeline(FramePipeline):
     """
     DMXFramePipeline now uses a state machine to manage mode transitions:
-      - MANUAL: User-controlled via keyboard/joystick.
+      - MANUAL: User-controlled via keyboard/joystick (AI detection is still shown, but DMX values are not updated automatically).
       - LOCKED: Drone is detected; the beam locks on.
       - HOLD: Detections have just dropped out; continue holding the lock.
       - SCANNING: No detection for a while; resume scanning from last offset.
@@ -47,9 +46,9 @@ class DMXFramePipeline(FramePipeline):
 
         # Lock-hold parameters with improved tolerances.
         self.last_detection_time = None
-        self.lock_loss_threshold = 3.0  # Increased: hold lock for 3 seconds after loss.
+        self.lock_loss_threshold = 3.0  # Hold lock for 3 seconds after detection loss.
         self.consecutive_no_detection = 0
-        self.detection_loss_threshold = 5  # Increased: require 5 consecutive missed frames.
+        self.detection_loss_threshold = 5  # Require 5 consecutive missed frames.
         self.last_lock_dmx_pan = None
         self.last_lock_dmx_tilt = None
 
@@ -119,7 +118,11 @@ class DMXFramePipeline(FramePipeline):
         self.send_dmx(3, dmx_tilt)
 
     def on_press(self, key):
-        """Manual mode DMX update via keyboard listener."""
+        """Manual mode DMX update via keyboard listener.
+           Reversed left and right controls: 
+             - Left key now increases the pan value.
+             - Right key now decreases the pan value.
+        """
         if self.manual_mode:
             try:
                 if key == keyboard.Key.up:
@@ -129,10 +132,12 @@ class DMXFramePipeline(FramePipeline):
                     self.current_tilt = max(self.current_tilt - self.keyboard_increment, 0)
                     self.send_dmx(3, self.current_tilt)
                 elif key == keyboard.Key.right:
-                    self.current_pan = min(self.current_pan + self.keyboard_increment, 255)
+                    # Reversed: Right decreases pan instead of increasing.
+                    self.current_pan = max(self.current_pan - self.keyboard_increment, 0)
                     self.send_dmx(1, self.current_pan)
                 elif key == keyboard.Key.left:
-                    self.current_pan = max(self.current_pan - self.keyboard_increment, 0)
+                    # Reversed: Left increases pan instead of decreasing.
+                    self.current_pan = min(self.current_pan + self.keyboard_increment, 255)
                     self.send_dmx(1, self.current_pan)
             except Exception as e:
                 logging.error(f"Error in on_press: {e}")
@@ -154,10 +159,10 @@ class DMXFramePipeline(FramePipeline):
             new_state = "LOCKED"
         else:
             self.consecutive_no_detection += 1
-            # If within the frame tolerance, remain LOCKED.
+            # Remain LOCKED if misses are within tolerance.
             if self.consecutive_no_detection < self.detection_loss_threshold:
                 new_state = "LOCKED"
-            # If missing detections, but within the time threshold, use HOLD.
+            # Move to HOLD if within the time threshold.
             elif self.last_detection_time is not None and (current_time - self.last_detection_time) < self.lock_loss_threshold:
                 new_state = "HOLD"
             else:
@@ -187,8 +192,9 @@ class DMXFramePipeline(FramePipeline):
                     axis_y = self.joystick.get_axis(1)
                     deadzone = 0.2
                     sensitivity = 0.5
+                    # Reverse the horizontal control: multiply axis_x by -1.
                     if abs(axis_x) > deadzone:
-                        self.current_pan += int(self.keyboard_increment * axis_x * sensitivity)
+                        self.current_pan += int(self.keyboard_increment * (-axis_x) * sensitivity)
                         self.current_pan = max(0, min(self.current_pan, 255))
                         self.send_dmx(1, self.current_pan)
                     if abs(axis_y) > deadzone:
@@ -200,7 +206,7 @@ class DMXFramePipeline(FramePipeline):
     def run(self):
         """
         Run the DMX pipeline using a state machine:
-          - MANUAL: Direct control via keyboard/joystick.
+          - MANUAL: Direct control via keyboard/joystick (DMX values are not auto-updated, but AI detection is displayed).
           - LOCKED: A drone is detected and the system locks on.
           - HOLD: Brief loss of detection; maintain last DMX values.
           - SCANNING: Prolonged loss of detection; resume scanning from last offset.
@@ -253,12 +259,14 @@ class DMXFramePipeline(FramePipeline):
 
                     # Execute behavior based on current state.
                     if self.state == "MANUAL":
+                        # In MANUAL mode, the AI detection remains running for display.
                         cv.putText(frame, "Manual Mode", (10, 30), cv.FONT_HERSHEY_SIMPLEX,
                                    1, (0, 0, 255), 2)
+                        tracked_objects = self.tracking_system.update(detections)
+                        self.draw(frame, detections, tracked_objects)
                     elif self.state in ("LOCKED", "HOLD"):
                         if detections:
                             self.last_detection_time = time.time()
-                            # If scanning was active, record scan progress.
                             if self.scan_start_time is not None:
                                 self.scan_offset = time.time() - self.scan_start_time
                                 self.scan_start_time = None
@@ -268,14 +276,12 @@ class DMXFramePipeline(FramePipeline):
                             cv.putText(frame, "Locking On", (10, 30), cv.FONT_HERSHEY_SIMPLEX,
                                        1, (0, 255, 0), 2)
                         else:
-                            # HOLD state: maintain last DMX values.
                             if self.last_lock_dmx_pan is not None and self.last_lock_dmx_tilt is not None:
                                 self.send_dmx(1, self.last_lock_dmx_pan)
                                 self.send_dmx(3, self.last_lock_dmx_tilt)
                             cv.putText(frame, "Locking On (holding)", (10, 30), cv.FONT_HERSHEY_SIMPLEX,
                                        1, (0, 255, 0), 2)
                     elif self.state == "SCANNING":
-                        # Initialize scan_start_time if transitioning to scanning.
                         if self.scan_start_time is None:
                             self.scan_start_time = time.time() - self.scan_offset
                             logging.info("Switching to scanning mode.")
@@ -290,7 +296,6 @@ class DMXFramePipeline(FramePipeline):
                         self.send_dmx(3, dmx_tilt)
                         cv.putText(frame, "Scanning...", (10, 30), cv.FONT_HERSHEY_SIMPLEX,
                                    1, (255, 0, 0), 2)
-                        # Log scanning DMX values every 5 seconds.
                         if time.time() - self.last_scan_log >= 5.0:
                             logging.info(f"Scanning DMX: Pan: {dmx_pan:.2f}, Tilt: {dmx_tilt:.2f} (t = {t:.2f}s)")
                             self.last_scan_log = time.time()
@@ -310,7 +315,6 @@ class DMXFramePipeline(FramePipeline):
             pygame.quit()
 
 if __name__ == "__main__":
-    # Set logging to INFO for key state transitions and DMX summaries.
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(levelname)s - %(message)s"
