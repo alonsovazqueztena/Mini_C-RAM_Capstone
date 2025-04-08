@@ -8,7 +8,10 @@ from pynput import keyboard
 import logging
 import time
 import numpy as np
-import pygame
+import os
+from contextlib import redirect_stdout
+with redirect_stdout(open(os.devnull, 'w')):
+    import pygame
 import threading
 
 from frame_pipeline import FramePipeline

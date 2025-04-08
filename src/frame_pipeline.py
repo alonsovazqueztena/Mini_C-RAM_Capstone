@@ -10,7 +10,8 @@ from video_stream_manager import VideoStreamManager
 import cv2 as cv
 import os
 from contextlib import redirect_stdout
-import pygame
+with redirect_stdout(open(os.devnull, 'w')):
+    import pygame
 
 class FramePipeline:
     """Pipeline: captures frames, runs AI detections, tracks objects, displays results."""
