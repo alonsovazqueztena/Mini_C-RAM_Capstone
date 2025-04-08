@@ -46,9 +46,9 @@ class DMXFramePipeline(FramePipeline):
 
         # Lock-hold parameters.
         self.last_detection_time = None
-        self.lock_loss_threshold = 2.0  # seconds to hold lock after detection loss.
+        self.lock_loss_threshold = 3.0  # Increased to 3 seconds to hold lock after detection loss.
         self.consecutive_no_detection = 0
-        self.detection_loss_threshold = 3  # frames with no detection before switching to SCANNING.
+        self.detection_loss_threshold = 5  # Increased number of frames without detection before switching to SCANNING.
         self.last_lock_dmx_pan = None
         self.last_lock_dmx_tilt = None
 
@@ -143,17 +143,21 @@ class DMXFramePipeline(FramePipeline):
 
     def _update_state(self, detections):
         """Update the internal state based on detection results."""
+        current_time = time.time()
         if self.manual_mode:
             new_state = "MANUAL"
         elif detections:
-            # Reset no-detection counter and update state to LOCKED.
+            # Detected something: reset counter and update the last detection time.
             self.consecutive_no_detection = 0
+            self.last_detection_time = current_time
             new_state = "LOCKED"
         else:
             self.consecutive_no_detection += 1
-            if (self.last_detection_time is not None and 
-                (time.time() - self.last_detection_time) < self.lock_loss_threshold and
-                self.consecutive_no_detection < self.detection_loss_threshold):
+            # If within frame tolerance, remain LOCKED.
+            if self.consecutive_no_detection < self.detection_loss_threshold:
+                new_state = "LOCKED"
+            # If detection is lost but within the time threshold, go into HOLD mode.
+            elif self.last_detection_time is not None and (current_time - self.last_detection_time) < self.lock_loss_threshold:
                 new_state = "HOLD"
             else:
                 new_state = "SCANNING"
@@ -191,6 +195,7 @@ class DMXFramePipeline(FramePipeline):
                         self.current_tilt = max(0, min(self.current_tilt, 255))
                         self.send_dmx(3, self.current_tilt)
             time.sleep(0.01)  # Avoid busy waiting.
+    
     def run(self):
         """
         Run the DMX pipeline using a state machine:
