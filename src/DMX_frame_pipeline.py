@@ -1,5 +1,6 @@
 # Daniel Saravia Source: https://grok.com/share/bGVnYWN5_52adc247-cde4-41e4-80bd-c70ef0c81dc9
 # DMX_frame_pipeline.py
+# DMX_frame_pipeline.py
 import socket
 import concurrent.futures
 import websocket
@@ -19,7 +20,7 @@ from frame_pipeline import FramePipeline
 class DMXFramePipeline(FramePipeline):
     """
     DMXFramePipeline now uses a state machine to manage mode transitions:
-      - MANUAL: User-controlled via keyboard.
+      - MANUAL: User-controlled via keyboard/joystick.
       - LOCKED: Drone is detected; the beam locks on.
       - HOLD: Detections have just dropped out; continue holding the lock.
       - SCANNING: No detection for a while; resume scanning from last offset.
@@ -44,11 +45,11 @@ class DMXFramePipeline(FramePipeline):
         self.state = "SCANNING"  # One of "MANUAL", "LOCKED", "HOLD", "SCANNING"
         self.last_state = None
 
-        # Lock-hold parameters.
+        # Lock-hold parameters with improved tolerances.
         self.last_detection_time = None
-        self.lock_loss_threshold = 2.0  # seconds to hold lock after detection loss.
+        self.lock_loss_threshold = 3.0  # Increased: hold lock for 3 seconds after loss.
         self.consecutive_no_detection = 0
-        self.detection_loss_threshold = 3  # frames with no detection before switching to SCANNING.
+        self.detection_loss_threshold = 5  # Increased: require 5 consecutive missed frames.
         self.last_lock_dmx_pan = None
         self.last_lock_dmx_tilt = None
 
@@ -97,7 +98,7 @@ class DMXFramePipeline(FramePipeline):
             cv.circle(frame, (cx, cy), 2, (0, 255, 0), -1)
 
     def update_dmx(self, centroid, frame):
-        """Compute DMX values for lock-on based on detection and save them."""
+        """Compute DMX values for lock-on based on detection and send them."""
         h, w = frame.shape[:2]
         error_x = centroid[0] - w / 2
         error_y = centroid[1] - h / 2
@@ -143,17 +144,21 @@ class DMXFramePipeline(FramePipeline):
 
     def _update_state(self, detections):
         """Update the internal state based on detection results."""
+        current_time = time.time()
         if self.manual_mode:
             new_state = "MANUAL"
         elif detections:
-            # Reset no-detection counter and update state to LOCKED.
+            # Reset no-detection counter and record time of detection.
             self.consecutive_no_detection = 0
+            self.last_detection_time = current_time
             new_state = "LOCKED"
         else:
             self.consecutive_no_detection += 1
-            if (self.last_detection_time is not None and 
-                (time.time() - self.last_detection_time) < self.lock_loss_threshold and
-                self.consecutive_no_detection < self.detection_loss_threshold):
+            # If within the frame tolerance, remain LOCKED.
+            if self.consecutive_no_detection < self.detection_loss_threshold:
+                new_state = "LOCKED"
+            # If missing detections, but within the time threshold, use HOLD.
+            elif self.last_detection_time is not None and (current_time - self.last_detection_time) < self.lock_loss_threshold:
                 new_state = "HOLD"
             else:
                 new_state = "SCANNING"
@@ -179,7 +184,7 @@ class DMXFramePipeline(FramePipeline):
                                 self.consecutive_no_detection = 0
                 if self.manual_mode:
                     axis_x = self.joystick.get_axis(0)
-                    axis_y = self.joystick.get_axis(1) 
+                    axis_y = self.joystick.get_axis(1)
                     deadzone = 0.2
                     sensitivity = 0.5
                     if abs(axis_x) > deadzone:
@@ -191,10 +196,11 @@ class DMXFramePipeline(FramePipeline):
                         self.current_tilt = max(0, min(self.current_tilt, 255))
                         self.send_dmx(3, self.current_tilt)
             time.sleep(0.01)  # Avoid busy waiting.
+
     def run(self):
         """
         Run the DMX pipeline using a state machine:
-          - MANUAL: Direct control via keyboard.
+          - MANUAL: Direct control via keyboard/joystick.
           - LOCKED: A drone is detected and the system locks on.
           - HOLD: Brief loss of detection; maintain last DMX values.
           - SCANNING: Prolonged loss of detection; resume scanning from last offset.
@@ -226,7 +232,7 @@ class DMXFramePipeline(FramePipeline):
                 print("Manual Mode: OFF (Automatic/Scanning Mode)")
                 logging.info("Automatic/Scanning Mode enabled.")
                 self.manual_mode = False
-                # When leaving manual, reset detection parameters.
+                # Reset detection parameters when leaving manual mode.
                 self.last_detection_time = None
                 self.consecutive_no_detection = 0
 
@@ -269,7 +275,7 @@ class DMXFramePipeline(FramePipeline):
                             cv.putText(frame, "Locking On (holding)", (10, 30), cv.FONT_HERSHEY_SIMPLEX,
                                        1, (0, 255, 0), 2)
                     elif self.state == "SCANNING":
-                        # If transitioning to scanning, initialize scan_start_time if not already.
+                        # Initialize scan_start_time if transitioning to scanning.
                         if self.scan_start_time is None:
                             self.scan_start_time = time.time() - self.scan_offset
                             logging.info("Switching to scanning mode.")
@@ -304,10 +310,11 @@ class DMXFramePipeline(FramePipeline):
             pygame.quit()
 
 if __name__ == "__main__":
-    # Set logging to INFO for key state transitions and occasional DMX summaries.
+    # Set logging to INFO for key state transitions and DMX summaries.
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(levelname)s - %(message)s"
     )
     pipeline = DMXFramePipeline(model_path="drone_detector_12n.pt", confidence_threshold=0.5)
     pipeline.run()
+
