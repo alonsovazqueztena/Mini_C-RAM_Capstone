@@ -8,7 +8,10 @@ from ai_model_interface import AIModelInterface
 from tracking_system import TrackingSystem
 from video_stream_manager import VideoStreamManager
 import cv2 as cv
-import pygame
+import os
+from contextlib import redirect_stdout
+with redirect_stdout(open(os.devnull, 'w')):
+    import pygame
 
 class FramePipeline:
     """Pipeline: captures frames, runs AI detections, tracks objects, displays results."""

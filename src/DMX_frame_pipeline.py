@@ -8,6 +8,11 @@ from pynput import keyboard
 import logging
 import time
 import numpy as np
+import os
+from contextlib import redirect_stdout
+with redirect_stdout(open(os.devnull, 'w')):
+    import pygame
+import threading
 
 from frame_pipeline import FramePipeline
 
@@ -57,6 +62,9 @@ class DMXFramePipeline(FramePipeline):
 
         self.ws = None
         self.init_dmx()
+
+        self.joystick = None
+        self.running = True
 
     def init_dmx(self):
         """Establish DMX WebSocket connection."""
@@ -153,6 +161,36 @@ class DMXFramePipeline(FramePipeline):
             logging.info(f"State change: {self.state} -> {new_state}")
             self.state = new_state
 
+    def handle_controller(self):
+        while self.running:
+            if self.joystick is not None:
+                for event in pygame.event.get():
+                    if event.type == pygame.JOYBUTTONDOWN:
+                        if event.button == 1:
+                            self.running = False
+                            break
+                        elif event.button == 3:
+                            self.manual_mode = not self.manual_mode
+                            if self.manual_mode:
+                                logging.info("Manual Mode enabled.")
+                            else:
+                                logging.info("Automatic/Scanning Mode enabled.")
+                                self.last_detection_time = None
+                                self.consecutive_no_detection = 0
+                if self.manual_mode:
+                    axis_x = self.joystick.get_axis(0)
+                    axis_y = self.joystick.get_axis(1) 
+                    deadzone = 0.2
+                    sensitivity = 0.5
+                    if abs(axis_x) > deadzone:
+                        self.current_pan += int(self.keyboard_increment * axis_x * sensitivity)
+                        self.current_pan = max(0, min(self.current_pan, 255))
+                        self.send_dmx(1, self.current_pan)
+                    if abs(axis_y) > deadzone:
+                        self.current_tilt += int(self.keyboard_increment * -axis_y * sensitivity)
+                        self.current_tilt = max(0, min(self.current_tilt, 255))
+                        self.send_dmx(3, self.current_tilt)
+            time.sleep(0.01)  # Avoid busy waiting.
     def run(self):
         """
         Run the DMX pipeline using a state machine:
@@ -162,6 +200,18 @@ class DMXFramePipeline(FramePipeline):
           - SCANNING: Prolonged loss of detection; resume scanning from last offset.
         """
         self.start_keyboard_listener()
+
+        pygame.init()
+        pygame.joystick.init()
+        if pygame.joystick.get_count() > 0:
+            self.joystick = pygame.joystick.Joystick(0)
+            self.joystick.init()
+            logging.info(f"Initialized joystick: {self.joystick.get_name()}")
+        else:
+            logging.warning("No Xbox controller detected. Using keyboard only for manual mode.")
+
+        controller_thread = threading.Thread(target=self.handle_controller, daemon=True)
+        controller_thread.start()
 
         cv.namedWindow("View", cv.WINDOW_NORMAL)
         cv.resizeWindow("View", 640, 480)
@@ -184,12 +234,11 @@ class DMXFramePipeline(FramePipeline):
 
         try:
             with self.video_stream as stream, concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-                while True:
+                while self.running:
                     frame = stream.get_frame()
                     if frame is None:
                         break
 
-                    # Run detection.
                     future = executor.submit(self.ai_model_interface.predict, frame)
                     detections = future.result()
 
@@ -200,8 +249,6 @@ class DMXFramePipeline(FramePipeline):
                     if self.state == "MANUAL":
                         cv.putText(frame, "Manual Mode", (10, 30), cv.FONT_HERSHEY_SIMPLEX,
                                    1, (0, 0, 255), 2)
-                        self.send_dmx(1, self.current_pan)
-                        self.send_dmx(3, self.current_tilt)
                     elif self.state in ("LOCKED", "HOLD"):
                         if detections:
                             self.last_detection_time = time.time()
@@ -247,12 +294,14 @@ class DMXFramePipeline(FramePipeline):
                     if cv.waitKey(1) & 0xFF == ord('q'):
                         break
         finally:
+            self.running = False
             self.video_stream.release_stream()
             cv.destroyAllWindows()
             if self.ws:
                 self.ws.close()
             if hasattr(self, 'keyboard_listener'):
                 self.keyboard_listener.stop()
+            pygame.quit()
 
 if __name__ == "__main__":
     # Set logging to INFO for key state transitions and occasional DMX summaries.
