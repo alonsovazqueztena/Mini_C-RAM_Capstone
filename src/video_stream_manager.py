@@ -7,7 +7,6 @@ import cv2 as cv # For computer vision using OpenCV
 
 class VideoStreamManager:
     """Manages video stream capture and processing."""
-
     def __init__(self, capture_device=0, max_queue_size=10):
         """Initialize with capture device index and frame queue size."""
         self.capture_device = capture_device

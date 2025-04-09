@@ -14,8 +14,8 @@ def main():
         pipeline = DMXFramePipeline(
             model_path="drone_detector_12x.pt",
             confidence_threshold=0.5
-        )
-        pipeline.run()
+        ) # Initialize DMX pipeline with model path and confidence threshold.
+        pipeline.run() # Run the pipeline until user quits.
 
     except Exception as e:
         logging.error(f"DMXFramePipeline execution failed: {e}")

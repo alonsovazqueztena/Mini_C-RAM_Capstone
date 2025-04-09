@@ -8,7 +8,6 @@ from scipy.spatial import distance as dist # To compute distances between centro
 
 class TrackingSystem:
     """Multi-object tracking system using centroid-based matching."""
-
     def __init__(self, max_disappeared=50, max_distance=50, smoothing_alpha=0.5):
         """Initialize tracking with disappearance and distance limits."""
         self.next_object_id = 0 # Next object ID to assign
