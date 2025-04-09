@@ -1,5 +1,5 @@
 # Alonso Vazquez Tena | STG-452: Capstone Project II | April 4, 2025
-# Source: https://chatgpt.com/share/67a05526-d4d8-800e-8e0d-67b03ca451a8
+# Source: https://chatgpt.com/share/67a05526-d4d8-800e-8e0d-67b03ca451a8, https://grok.com/share/bGVnYWN5_7008140a-9936-4b7f-b83d-0760c7ea866c
 # Daniel Saravia Source: https://grok.com/share/bGVnYWN5_52adc247-cde4-41e4-80bd-c70ef0c81dc9
 
 from ultralytics import YOLO # YOLO model for object detection

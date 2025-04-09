@@ -1,5 +1,5 @@
 # Alonso Vazquez Tena | STG-452: Capstone Project II | April 5, 2025
-# Source: https://chatgpt.com/share/67a17189-ca30-800e-858d-aac289e6cb56, https://chatgpt.com/share/67d77b29-c824-800e-ab25-2cc850596046.
+# Source: https://chatgpt.com/share/67a17189-ca30-800e-858d-aac289e6cb56, https://chatgpt.com/share/67d77b29-c824-800e-ab25-2cc850596046,
 # Daniel Saravia Source: https://grok.com/share/bGVnYWN5_f72f2b0a-cc36-43d1-b32a-3b62ed45820a
 # frame_pipeline.py
 import concurrent.futures # For running tasks concurrently.

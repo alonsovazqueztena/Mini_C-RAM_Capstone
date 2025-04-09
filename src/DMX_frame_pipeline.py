@@ -1,4 +1,5 @@
 # Daniel Saravia Source: https://grok.com/share/bGVnYWN5_52adc247-cde4-41e4-80bd-c70ef0c81dc9
+# Alonso Vazquez Tena Source: https://grok.com/share/bGVnYWN5_10a649d1-27c0-4492-9545-3a3f518fd3c3
 # DMX_frame_pipeline.py
 import socket # For network connections
 import concurrent.futures # For running tasks asynchronously
