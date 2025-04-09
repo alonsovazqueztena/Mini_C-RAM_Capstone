@@ -138,6 +138,75 @@ To set up a USB phone webcam, do the following:
 3. Plug a USB cable into the phone and computer.
 4. Ensure that Iriun Webcam is receiving your video frame.
 
+# QLC+ for Moving Head Light Control
+
+This project utilizes QLC+ to control stage lighting with a moving head fixture. The setup uses industry-standard hardware and a custom DMX configuration to deliver professional results.
+
+## Hardware Components
+
+- **U`King LED Moving Head Light 25W DJ Lights Stage Lighting**  
+  The primary lighting fixture for dynamic stage effects.
+
+- **Enttec Open DMX USB**  
+  The DMX interface used for communication between your computer and the lighting hardware.
+
+- **DMX Cables**  
+  Standard cables to connect your DMX interface to the lighting fixture.
+
+## Software Requirements
+
+- **QLC+**  
+  The official lighting control software running on Linux.
+  
+- **Custom Workspace File (`qlight_workspace.qxw`)**  
+  Pre-configured workspace with DMX settings tailored to your setup.
+
+## Installation Steps for Linux
+
+QLC+ is distributed as a Debian package (.deb) for Linux systems. Follow these steps to install and start QLC+:
+
+1. **Download the QLC+ Debian Package**  
+   Visit the [official QLC+ website](https://qlcplus.org/) and download the appropriate Debian package (e.g., `qlcplus_x.y.x.deb`).
+
+2. **Install QLC+**  
+   Open a terminal, navigate to the directory containing the downloaded package, and run:
+
+   ```bash
+   sudo dpkg -i qlcplus_x.y.x.deb
+   ```
+
+   This command installs QLC+ on your system.
+
+3. **Launch QLC+ with Your Custom Workspace**  
+   To start QLC+ using your configuration, execute:
+
+   ```bash
+   qlcplus -w -o qlight_workspace.qxw
+   ```
+
+   - The `-w` flag launches QLC+ in windowed mode.
+   - The `-o` flag specifies the custom workspace file to load.
+
+## Verifying Your Setup
+
+Once QLC+ is running, verify that your DMX setup is functioning by opening a web browser and navigating to:
+
+```
+http://localhost:9999/
+```
+
+If the web interface loads, your DMX configuration is active and the system is ready for control.
+
+## Additional Configuration Tips
+
+- **Check DMX Addressing:**  
+  Ensure that the DMX addresses configured in QLC+ match those on your U`King moving head light.
+
+- **Hardware Connections:**  
+  Confirm that the Enttec Open DMX USB interface is connected correctly and that all DMX cables are securely attached.
+
+- **Further Resources:**  
+  For more detailed configuration or troubleshooting, refer to the [QLC+ Documentation](https://qlcplus.org/docs.html).
 
 ## Model Training
 ### General Steps
