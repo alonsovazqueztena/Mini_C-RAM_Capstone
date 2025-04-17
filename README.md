@@ -115,6 +115,7 @@ To only execute the object detection and tracking software, run this:
 # Execute the program using the source code (must be in src folder)
 python main.py
 python3 main.py # Or also this.
+python3 run.py if set up with hardware(Moving Headlight, Enttec Open DMX USB, DMX cables, Phone Web Cam)
 ```
 
 ### User Control
