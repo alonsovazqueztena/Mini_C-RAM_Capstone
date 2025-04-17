@@ -29,47 +29,55 @@ A real-time counter-drone system using computer vision and object tracking. Dete
 
 ## System Architecture
 ```
+Mini_C-RAM_Capstone$ tree -I cap/
 .
+├── LICENSE
 ├── notebooks
-│   └── ai_model_training.ipynb       # AI model training notebook
+│   └── ai_model_training.ipynb
+├── readme_images
+│   ├── confusion_matrix_normalized.png
+│   ├── confusion_matrix.png
+│   ├── F1_curve.png
+│   ├── labels_correlogram.jpg
+│   ├── labels.jpg
+│   ├── P_curve.png
+│   ├── poster.png
+│   ├── PR_curve.png
+│   ├── R_curve.png
+│   └── results.png
+├── README.md
+├── requirements.txt
 ├── src
-│   ├── ai_model_interface.py         # AI model wrapper
+│   ├── ai_model_interface.py
 │   ├── dmx_control.py
 │   ├── DMX_frame_pipeline.py
-│   ├── drone_detected.mp3            # Sound clip for drone detection
-│   ├── drone_detector_12l.pt         # YOLO12l drone detector model
-│   ├── drone_detector_12m.pt         # YOLO12m drone detector model
-│   ├── drone_detector_12n.pt         # YOLO12n drone detector model
-│   ├── drone_detector_12s.pt         # YOLO12s drone detector model
-│   ├── drone_detector_12x.pt         # YOLO12x drone detector model (SEE NOTE BELOW)
-│   ├── frame_pipeline.py             # Main processing workflow
-│   ├── main.py                       # Program execution code
+│   ├── drone_detected.mp3
+│   ├── drone_detector_12l.pt
+│   ├── drone_detector_12m.pt
+│   ├── drone_detector_12n.pt
+│   ├── drone_detector_12s.pt
+│   ├── drone_detector_12x.pt
+│   ├── frame_pipeline.py
+│   ├── __init__.py
+│   ├── main.py
+│   ├── __pycache__
+│   │   ├── ai_model_interface.cpython-312.pyc
+│   │   ├── detection_processor.cpython-312.pyc
+│   │   ├── DMX_frame_pipeline.cpython-312.pyc
+│   │   ├── frame_pipeline.cpython-312.pyc
+│   │   ├── frame_processor.cpython-312.pyc
+│   │   ├── tracking_system.cpython-312.pyc
+│   │   └── video_stream_manager.cpython-312.pyc
 │   ├── qlight_workspace.qxw
 │   ├── run.py
 │   ├── run.sh
-│   ├── tracking_system.py            # Object tracking implementation
-│   └── video_stream_manager.py       # Camera/stream input handling
+│   ├── tracking_system.py
+│   └── video_stream_manager.py
 ├── test
-│   └── test_ai.py                    # Detection test for AI model
+│   ├── __init__.py
+│   └── test_ai.py
 └── test_images
-    ├── drone_mock_test_1.jpg         # Sample mock test image
-    ├── drone_mock_test_2.jpg         # Sample mock test image
-    ├── drone_mock_test_3.jpg         # Sample mock test image
-    ├── drone_real_test_1.jpg         # Sample real test image
-    ├── drone_real_test_2.jpg         # Sample real test image
-    ├── drone_real_test_3.jpg         # Sample real test image
-    ├── drone_real_test_4.jpg         # Sample real test image
-    ├── drone_real_test_5.jpg         # Sample real test image
-    ├── drone_real_test_6.jpg         # Sample real test image
-    ├── drone_real_test_7.jpg         # Sample real test image
-    ├── drone_real_test_8.jpg         # Sample real test image
-    ├── drone_real_test_9.jpg         # Sample real test image
-    ├── drone_real_test_10.jpg        # Sample real test image
-    ├── drone_real_test_11.jpg        # Sample real test image
-    ├── drone_real_test_12.jpg        # Sample real test image
-    ├── drone_real_test_13.jpg        # Sample real test image
-    ├── drone_real_test_14.jpg        # Sample real test image
-    └── drone_real_test_15.jpg        # Sample real test image
+7 directories, 58 files
 ```
 
 NOTE: drone_detector_12x.pt could not be added to the repository due to its size (exceeds 100MB). The download link is here: https://drive.google.com/file/d/1yzFKtHaEQzx3OuTVzEUAEHYwTYP83IO0/view?usp=drive_link
