@@ -38,24 +38,9 @@ A real-time counter-drone system using computer vision and object tracking. Dete
 
 ## System Architecture
 ```
-Mini_C-RAM_Capstone$ tree -I cap/
 .
-├── LICENSE
 ├── notebooks
 │   └── ai_model_training.ipynb
-├── readme_images
-│   ├── confusion_matrix_normalized.png
-│   ├── confusion_matrix.png
-│   ├── F1_curve.png
-│   ├── labels_correlogram.jpg
-│   ├── labels.jpg
-│   ├── P_curve.png
-│   ├── poster.png
-│   ├── PR_curve.png
-│   ├── R_curve.png
-│   └── results.png
-├── README.md
-├── requirements.txt
 ├── src
 │   ├── ai_model_interface.py
 │   ├── dmx_control.py
@@ -67,26 +52,19 @@ Mini_C-RAM_Capstone$ tree -I cap/
 │   ├── drone_detector_12s.pt
 │   ├── drone_detector_12x.pt
 │   ├── frame_pipeline.py
-│   ├── __init__.py
 │   ├── main.py
-│   ├── __pycache__
-│   │   ├── ai_model_interface.cpython-312.pyc
-│   │   ├── detection_processor.cpython-312.pyc
-│   │   ├── DMX_frame_pipeline.cpython-312.pyc
-│   │   ├── frame_pipeline.cpython-312.pyc
-│   │   ├── frame_processor.cpython-312.pyc
-│   │   ├── tracking_system.cpython-312.pyc
-│   │   └── video_stream_manager.cpython-312.pyc
 │   ├── qlight_workspace.qxw
 │   ├── run.py
 │   ├── run.sh
 │   ├── tracking_system.py
 │   └── video_stream_manager.py
 ├── test
-│   ├── __init__.py
 │   └── test_ai.py
 └── test_images
-7 directories, 58 files
+    ├── drone_real_test_1.jpg
+    ├── drone_real_test_2.jpg
+    ├── ...
+    └── drone_real_test_15.jpg
 ```
 
 NOTE: drone_detector_12x.pt could not be added to the repository due to its size (exceeds 100MB). [Download](https://drive.google.com/file/d/1yzFKtHaEQzx3OuTVzEUAEHYwTYP83IO0/view?usp=drive_link)
