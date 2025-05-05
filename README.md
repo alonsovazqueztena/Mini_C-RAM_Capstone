@@ -476,7 +476,7 @@ git checkout -b feature/new-tracker
 ---
 
 ## License
-MIT License - See LICENSE for details
+MIT License - See [LICENSE](LICENSE)
 
 ---
 
