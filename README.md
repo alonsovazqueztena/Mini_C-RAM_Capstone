@@ -15,17 +15,26 @@
 - [Maintainers](#maintainers)
 - [Citations and Acknowledgements](#citations-and-acknowledgements)
 
+---
 
 ## Project Overview
 ![Poster](readme_images/poster.png)
 
 A real-time counter-drone system using computer vision and object tracking. Detects UAVs in video streams and simulates countermeasures (target locking).
 
+### Demo Videos
+- [Alonso Vazquez Tena](https://youtube.com/shorts/53AWf_9uEzw?feature=shared)
+- [Daniel Saravia](https://youtube.com/shorts/bJcraph1RIk?feature=shared)
+
+---
+
 ## Key Features
 - Real-time object detection using YOLO12
 - Centroid-based object tracking
 - Frame processing pipeline (1920x1080 @ 120FPS)
 - Configurable detection thresholds and tracking parameters
+
+---
 
 ## System Architecture
 ```
@@ -80,7 +89,10 @@ Mini_C-RAM_Capstone$ tree -I cap/
 7 directories, 58 files
 ```
 
-NOTE: drone_detector_12x.pt could not be added to the repository due to its size (exceeds 100MB). The download link is here: https://drive.google.com/file/d/1yzFKtHaEQzx3OuTVzEUAEHYwTYP83IO0/view?usp=drive_link
+NOTE: drone_detector_12x.pt could not be added to the repository due to its size (exceeds 100MB). [Download](https://drive.google.com/file/d/1yzFKtHaEQzx3OuTVzEUAEHYwTYP83IO0/view?usp=drive_link)
+
+---
+
 ## Installation
 
 ### Prerequisites
@@ -106,6 +118,8 @@ source env/Scripts/activate  # Windows
 # Install dependencies
 pip install -r requirements.txt
 ```
+
+---
 
 ## Usage
 
@@ -137,6 +151,8 @@ For Xbox controller control, follow these commands:
 | Y            | Toggle manual/automatic mode           |
 | Leftmost Analog Stick | Move system freely (any direction)     |
 
+---
+
 ## Hardware Setup
 **Camera Connection**
 
@@ -147,11 +163,11 @@ To set up a USB phone webcam, do the following:
 3. Plug a USB cable into the phone and computer.
 4. Ensure that Iriun Webcam is receiving your video frame.
 
-# QLC+ for Moving Head Light Control
+### QLC+ for Moving Head Light Control
 
 This project utilizes QLC+ to control stage lighting with a moving head fixture. The setup uses industry-standard hardware and a custom DMX configuration to deliver professional results.
 
-## Hardware Components
+### Hardware Components
 
 - **U`King LED Moving Head Light 25W DJ Lights Stage Lighting**  
   The primary lighting fixture for dynamic stage effects.
@@ -162,7 +178,7 @@ This project utilizes QLC+ to control stage lighting with a moving head fixture.
 - **DMX Cables**  
   Standard cables to connect your DMX interface to the lighting fixture.
 
-## Software Requirements
+### Software Requirements
 
 - **QLC+**  
   The official lighting control software running on Linux.
@@ -170,7 +186,7 @@ This project utilizes QLC+ to control stage lighting with a moving head fixture.
 - **Custom Workspace File (`qlight_workspace.qxw`)**  
   Pre-configured workspace with DMX settings tailored to your setup.
 
-## Installation Steps for Linux
+### Installation Steps for Linux
 
 QLC+ is distributed as a Debian package (.deb) for Linux systems. Follow these steps to install and start QLC+:
 
@@ -196,7 +212,7 @@ QLC+ is distributed as a Debian package (.deb) for Linux systems. Follow these s
    - The `-w` flag launches QLC+ in windowed mode.
    - The `-o` flag specifies the custom workspace file to load.
 
-## Verifying Your Setup
+### Verifying Your Setup
 
 Once QLC+ is running, verify that your DMX setup is functioning by opening a web browser and navigating to:
 
@@ -206,7 +222,7 @@ http://localhost:9999/
 
 If the web interface loads, your DMX configuration is active and the system is ready for control.
 
-## Additional Configuration Tips
+### Additional Configuration Tips
 
 - **Check DMX Addressing:**  
   Ensure that the DMX addresses configured in QLC+ match those on your U`King moving head light.
@@ -216,6 +232,8 @@ If the web interface loads, your DMX configuration is active and the system is r
 
 - **Further Resources:**  
   For more detailed configuration or troubleshooting, refer to the [QLC+ Documentation](https://qlcplus.org/docs.html).
+
+---
 
 ## Model Training
 ### General Steps
@@ -344,6 +362,8 @@ The following results were achieved with the final YOLO12m model used for this p
 
 ![Confusion matrix normalized](readme_images/confusion_matrix_normalized.png)
 
+---
+
 ## Testing
 ### Module Testing
 
@@ -396,6 +416,9 @@ python test_ai.py   # Results in runs folder
     └── predict 
         └── processed_test_image.jpg  # Detection test for AI model
 ```
+
+---
+
 ## Troubleshooting
 ### ERROR: No frames available.
 Ensure that all the capture device indexes match to your capture device (0 if its an internal webcam, 1 if its an external webcam such as an Iriun webcam or GoPro).
@@ -454,6 +477,9 @@ test_ai.py:
 ```bash
 model = YOLO("..\src\drone_detector_12n.pt") # Create model instance, update this filepath.
 ```
+
+---
+
 ## Contributing
 
 1. Fork the repository
@@ -469,14 +495,20 @@ git checkout -b feature/new-tracker
 - Docstrings for all modules
 - 80%+ test coverage
 
+---
+
 ## License
 MIT License - See LICENSE for details
+
+---
 
 ## Maintainers
 - Alonso Vazquez Tena: AI Engineer
 - Daniel Saravia: System Integration Engineer
 
 **Mentor**: Ryan Woodward  
+
+---
 
 ## Citations and Acknowledgements
 **YOLO12**  
